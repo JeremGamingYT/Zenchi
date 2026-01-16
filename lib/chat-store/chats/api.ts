@@ -1,4 +1,4 @@
-import { readFromIndexedDB, writeToIndexedDB } from "@/lib/chat-store/persist"
+import { readFromIndexedDB, writeToIndexedDB, deleteFromIndexedDB } from "@/lib/chat-store/persist"
 import type { Chat, Chats } from "@/lib/chat-store/types"
 import { createClient } from "@/lib/supabase/client"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
@@ -115,12 +115,8 @@ export async function updateChatTitle(
 }
 
 export async function deleteChat(id: string): Promise<void> {
-  // Always update IndexedDB cache first
-  const all = await getCachedChats()
-  await writeToIndexedDB(
-    "chats",
-    (all as Chats[]).filter((c) => c.id !== id)
-  )
+  // Delete from IndexedDB cache directly
+  await deleteFromIndexedDB("chats", id)
 
   // Try to delete from database if Supabase is enabled
   if (isSupabaseEnabled) {

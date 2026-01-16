@@ -117,7 +117,7 @@ export function UserPreferencesProvider({
   }
 
   // Query for user preferences
-  const { data: preferences = getInitialData(), isLoading } =
+  const { data: preferences = defaultPreferences, isLoading } =
     useQuery<UserPreferences>({
       queryKey: ["user-preferences", userId],
       queryFn: async () => {
@@ -136,15 +136,16 @@ export function UserPreferencesProvider({
         }
       },
       enabled: typeof window !== "undefined",
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 0, // Always consider data stale on mount to get fresh localStorage
       gcTime: 1000 * 60 * 30, // 30 minutes
       retry: (failureCount, error) => {
         // Only retry for authenticated users and network errors
         return isAuthenticated && failureCount < 2
       },
-      // Use initial data if available to avoid unnecessary API calls
-      initialData:
-        initialPreferences && isAuthenticated ? getInitialData() : undefined,
+      // Only set initial data on client-side, not during SSR
+      initialData: typeof window !== "undefined" ? getLocalStoragePreferences() : undefined,
+      // Mark SSR data as immediately stale so queryFn runs on client mount
+      initialDataUpdatedAt: typeof window !== "undefined" ? Date.now() : 0,
     })
 
   // Mutation for updating preferences
@@ -189,9 +190,8 @@ export function UserPreferencesProvider({
   const updatePreferences = mutation.mutate
 
   const setLayout = (layout: LayoutType) => {
-    if (isAuthenticated || layout === "fullscreen") {
-      updatePreferences({ layout })
-    }
+    // Always save layout preference for all users
+    updatePreferences({ layout })
   }
 
   const setPromptSuggestions = (enabled: boolean) => {

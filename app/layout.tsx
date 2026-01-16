@@ -13,6 +13,7 @@ import { UserPreferencesProvider } from "@/lib/user-preference-store/provider"
 import { UserProvider } from "@/lib/user-store/provider"
 import { BudgetProvider } from "@/lib/budget-store/provider"
 import { ToolsProvider } from "@/lib/tools-store/provider"
+import { AgentsProvider } from "@/lib/agents-store/provider"
 import { getUserProfile } from "@/lib/user/api"
 import { ThemeProvider } from "next-themes"
 import Script from "next/script"
@@ -88,8 +89,10 @@ export default async function RootLayout({
                           >
                             <SidebarProvider defaultOpen>
                               <ToolsProvider>
-                                <Toaster position="top-center" />
-                                {children}
+                                <AgentsProvider>
+                                  <Toaster position="top-center" />
+                                  {children}
+                                </AgentsProvider>
                               </ToolsProvider>
                             </SidebarProvider>
                           </ThemeProvider>

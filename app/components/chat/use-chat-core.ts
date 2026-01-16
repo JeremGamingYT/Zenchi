@@ -11,6 +11,33 @@ import { DefaultChatTransport } from "ai"
 import { useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
+const OLLAMA_STORAGE_KEY = "zenchi-ollama-settings"
+
+// Get Ollama endpoint from localStorage
+function getOllamaEndpoint(): string | undefined {
+  if (typeof window === "undefined") return undefined
+  try {
+    const stored = localStorage.getItem(OLLAMA_STORAGE_KEY)
+    console.log("[Client Ollama Debug] Storage:", stored)
+    if (stored) {
+      const settings = JSON.parse(stored)
+      console.log("[Client Ollama Debug] Settings:", settings)
+      if (settings.enabled) {
+        const endpoint = settings.connectionType === "local"
+          ? settings.localEndpoint
+          : settings.remoteEndpoint
+        console.log("[Client Ollama Debug] Endpoint:", endpoint)
+        return endpoint
+      } else {
+        console.log("[Client Ollama Debug] Ollama not enabled")
+      }
+    }
+  } catch (e) {
+    console.error("[Client Ollama Debug] Error:", e)
+  }
+  return undefined
+}
+
 type BudgetErrorState = {
   open: boolean
   budgetType: "monthly" | "daily" | "per_chat"
@@ -216,7 +243,7 @@ export function useChatCore({
 
       // Use activeChatId if available, otherwise create/get chatId
       let currentChatId = activeChatId || chatId
-      
+
       if (!currentChatId) {
         currentChatId = await ensureChatExists(uid, input)
         if (!currentChatId) {
@@ -251,15 +278,17 @@ export function useChatCore({
           systemPrompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
           enableSearch,
           mcpServers,
+          // Pass Ollama endpoint for remote connections
+          ollamaEndpoint: selectedModel.startsWith("ollama/") ? getOllamaEndpoint() : undefined,
         },
       }
-      
+
       // Clear input immediately
       setInput("")
       clearDraft()
-      
+
       // Send message with files
-      await sendMessage({ 
+      await sendMessage({
         text: input,
         files: fileList
       } as any, options)
@@ -317,6 +346,7 @@ export function useChatCore({
             model: selectedModel,
             isAuthenticated,
             systemPrompt: SYSTEM_PROMPT_DEFAULT,
+            ollamaEndpoint: selectedModel.startsWith("ollama/") ? getOllamaEndpoint() : undefined,
           },
         }
 
@@ -352,6 +382,7 @@ export function useChatCore({
         model: selectedModel,
         isAuthenticated,
         systemPrompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
+        ollamaEndpoint: selectedModel.startsWith("ollama/") ? getOllamaEndpoint() : undefined,
       },
     }
 

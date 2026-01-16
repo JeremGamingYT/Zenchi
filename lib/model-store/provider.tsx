@@ -49,17 +49,64 @@ export function ModelProvider({ children }: { children: React.ReactNode }) {
   const [favoriteModels, setFavoriteModels] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
+  const OLLAMA_STORAGE_KEY = "zenchi-ollama-settings"
+
+  // Get Ollama endpoint from localStorage
+  const getOllamaEndpoint = useCallback((): string | null => {
+    if (typeof window === "undefined") return null
+    try {
+      const stored = localStorage.getItem(OLLAMA_STORAGE_KEY)
+      if (stored) {
+        const settings = JSON.parse(stored)
+        if (settings.enabled) {
+          return settings.connectionType === "local"
+            ? settings.localEndpoint
+            : settings.remoteEndpoint
+        }
+      }
+    } catch {
+      // Ignore parsing errors
+    }
+    return null
+  }, [])
+
   const fetchModels = useCallback(async () => {
     try {
+      // Fetch standard models
       const response = await fetchClient("/api/models")
+      let allModels: ModelConfig[] = []
+
       if (response.ok) {
         const data = await response.json()
-        setModels(data.models || [])
+        allModels = data.models || []
       }
+
+      // Fetch Ollama models if endpoint is configured
+      const ollamaEndpoint = getOllamaEndpoint()
+      if (ollamaEndpoint) {
+        try {
+          const ollamaResponse = await fetch("/api/ollama/models", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ endpoint: ollamaEndpoint }),
+          })
+
+          if (ollamaResponse.ok) {
+            const ollamaData = await ollamaResponse.json()
+            const ollamaModels = ollamaData.models || []
+            // Merge Ollama models at the beginning of the list
+            allModels = [...ollamaModels, ...allModels]
+          }
+        } catch (error) {
+          console.warn("Failed to fetch Ollama models:", error)
+        }
+      }
+
+      setModels(allModels)
     } catch (error) {
       console.error("Failed to fetch models:", error)
     }
-  }, [])
+  }, [getOllamaEndpoint])
 
   const fetchUserKeyStatus = useCallback(async () => {
     try {

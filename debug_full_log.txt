@@ -1,0 +1,4 @@
+
+[2026-01-16T22:52:48.562Z] Request received
+Model: ollama/gpt-oss:20b
+Ollama Endpoint: https://271f67e7004c.ngrok-free.app
