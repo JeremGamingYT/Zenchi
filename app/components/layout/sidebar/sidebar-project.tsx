@@ -16,16 +16,21 @@ type Project = {
 export function SidebarProject() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
-  const { data: projects = [], isLoading } = useQuery<Project[]>({
+  const { data: projectsData, isLoading } = useQuery<Project[] | { error: string }>({
     queryKey: ["projects"],
     queryFn: async () => {
       const response = await fetch("/api/projects")
       if (!response.ok) {
-        throw new Error("Failed to fetch projects")
+        return [] // Return empty array on error
       }
       return response.json()
     },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes
   })
+
+  // Ensure projects is always an array (API may return error object when unauthenticated)
+  const projects = Array.isArray(projectsData) ? projectsData : []
 
   return (
     <div className="mb-5">

@@ -1,4 +1,4 @@
--- Supabase public schema setup for Zola
+-- Supabase public schema setup for Zenchi
 -- Safe to run multiple times; uses IF NOT EXISTS where possible.
 
 -- Extensions

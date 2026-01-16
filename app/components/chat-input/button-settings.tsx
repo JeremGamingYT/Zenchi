@@ -20,7 +20,8 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
-import { PaintBrush, Plus, Gear, CaretRight } from "@phosphor-icons/react"
+import { PaintBrush, Plus, Gear, CaretRight, Kanban, Robot, Check } from "@phosphor-icons/react"
+import { useTools } from "@/lib/tools-store/provider"
 import { SlidersVertical } from "@/components/animate-ui/icons/sliders-vertical"
 import { AnimateIcon } from "@/components/animate-ui/icons/icon"
 import React, { useState } from "react"
@@ -39,6 +40,7 @@ export function ButtonSettings({ disabled = false, isUserAuthenticated = true }:
   const [submenuOpen, setSubmenuOpen] = useState(false)
   const [mcpSubmenuOpen, setMcpSubmenuOpen] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const { planningEnabled, agentsEnabled, togglePlanning, toggleAgents } = useTools()
 
   const handleUseStyle = () => {
     setSubmenuOpen(true)
@@ -125,7 +127,7 @@ export function ButtonSettings({ disabled = false, isUserAuthenticated = true }:
                 transition={{ duration: 0.3, ease: "easeInOut" }}
                 className="flex flex-col p-1.5"
               >
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={(e) => {
                     e.preventDefault()
                     handleUseStyle()
@@ -138,9 +140,35 @@ export function ButtonSettings({ disabled = false, isUserAuthenticated = true }:
                   <CaretRight className="ml-auto size-4 opacity-50" />
                 </DropdownMenuItem>
 
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.preventDefault()
+                    togglePlanning()
+                  }}
+                  onSelect={(e) => e.preventDefault()}
+                  className="gap-2.5 h-8 cursor-pointer"
+                >
+                  <Kanban className="size-4" />
+                  <span>Planning</span>
+                  {planningEnabled && <Check className="ml-auto size-4 text-primary" weight="bold" />}
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.preventDefault()
+                    toggleAgents()
+                  }}
+                  onSelect={(e) => e.preventDefault()}
+                  className="gap-2.5 h-8 cursor-pointer"
+                >
+                  <Robot className="size-4" />
+                  <span>Agents</span>
+                  {agentsEnabled && <Check className="ml-auto size-4 text-primary" weight="bold" />}
+                </DropdownMenuItem>
+
                 <DropdownMenuSeparator className="mx-1.5" />
 
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={(e) => {
                     e.preventDefault()
                     handleManageMCPServers()

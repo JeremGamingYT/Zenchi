@@ -115,12 +115,21 @@ export async function updateChatTitle(
 }
 
 export async function deleteChat(id: string): Promise<void> {
-  await deleteChatInDb(id)
+  // Always update IndexedDB cache first
   const all = await getCachedChats()
   await writeToIndexedDB(
     "chats",
     (all as Chats[]).filter((c) => c.id !== id)
   )
+
+  // Try to delete from database if Supabase is enabled
+  if (isSupabaseEnabled) {
+    try {
+      await deleteChatInDb(id)
+    } catch (error) {
+      console.debug("Could not delete from database, local cache updated", error)
+    }
+  }
 }
 
 export async function getChat(chatId: string): Promise<Chat | null> {
@@ -168,7 +177,7 @@ export async function updateChatModel(chatId: string, model: string) {
     if (!res.ok) {
       throw new Error(
         responseData.error ||
-          `Failed to update chat model: ${res.status} ${res.statusText}`
+        `Failed to update chat model: ${res.status} ${res.statusText}`
       )
     }
 
@@ -196,7 +205,7 @@ export async function toggleChatPin(chatId: string, pinned: boolean) {
     if (!res.ok) {
       throw new Error(
         responseData.error ||
-          `Failed to update pinned: ${res.status} ${res.statusText}`
+        `Failed to update pinned: ${res.status} ${res.statusText}`
       )
     }
     const all = await getCachedChats()

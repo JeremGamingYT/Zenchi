@@ -36,7 +36,7 @@ export function Header({ hasSidebar }: { hasSidebar: boolean }) {
                 <ZolaIcon className="mr-1 size-4" />
                 {APP_NAME}
               </Link>
-              {hasSidebar && isMobile && <HeaderSidebarTrigger />}
+              {hasSidebar && <HeaderSidebarTrigger />}
             </div>
           </div>
           <div />

@@ -1,10 +1,10 @@
 <div align="center">
 
-# Zola Installation Guide
+# Zenchi Installation Guide
 
-**Complete setup guide for self-hosting Zola with authentication, storage, and AI models**
+**Complete setup guide for self-hosting Zenchi with authentication, storage, and AI models**
 
-![Zola Installation](./public/cover_zola.webp)
+![Zenchi Installation](./public/cover_Zenchi.webp)
 
 [Back to Main README](./README.md)
 
@@ -38,7 +38,7 @@ Before you begin, ensure you have the following installed:
 - API Keys - For AI providers like OpenAI, Anthropic, Google, etc.
 - Ollama (optional) - For running local AI models
 
-Note: You can run Zola without Supabase for basic functionality, but you'll lose authentication, file uploads, and user preferences.
+Note: You can run Zenchi without Supabase for basic functionality, but you'll lose authentication, file uploads, and user preferences.
 
 ## Environment Setup
 
@@ -138,7 +138,7 @@ python -c "import base64, secrets; print(base64.b64encode(secrets.token_bytes(32
 
 ## Authentication Setup
 
-Zola supports multiple authentication methods through Supabase.
+Zenchi supports multiple authentication methods through Supabase.
 
 ### Google OAuth Setup
 
@@ -173,24 +173,24 @@ For production deployments (e.g., Vercel), you need to add your production domai
 2. Edit your OAuth 2.0 Client ID
 3. Add your production redirect URI:
    ```
-   https://zola.silkepilon.dev/auth/callback
+   https://Zenchi.silkepilon.dev/auth/callback
    ```
 4. Click **Save**
 
 5. In **Supabase Dashboard** > **Authentication** > **URL Configuration**:
-   - Add `https://zola.silkepilon.dev` to **Redirect URLs**
-   - Set **Site URL** to `https://zola.silkepilon.dev`
+   - Add `https://Zenchi.silkepilon.dev` to **Redirect URLs**
+   - Set **Site URL** to `https://Zenchi.silkepilon.dev`
 
 6. In your Vercel deployment, ensure environment variable is set:
    ```
-   NEXT_PUBLIC_SITE_URL=https://zola.silkepilon.dev
+   NEXT_PUBLIC_SITE_URL=https://Zenchi.silkepilon.dev
    ```
 
 This ensures that after authentication, users are redirected back to your production domain instead of localhost.
 
 ### Guest Mode Setup
 
-Enable anonymous sign-ins for users to try Zola without creating an account:
+Enable anonymous sign-ins for users to try Zenchi without creating an account:
 
 1. Go to **Supabase Dashboard** > **Authentication** > **Providers**
 2. Scroll to **Anonymous sign-ins**
@@ -202,7 +202,7 @@ Enable anonymous sign-ins for users to try Zola without creating an account:
 
 ### Quick Setup
 
-Zola includes a complete database schema in `supabase/schema.sql`.
+Zenchi includes a complete database schema in `supabase/schema.sql`.
 
 #### Method 1: Use the Provided Schema (Recommended)
 
@@ -259,7 +259,7 @@ Copy the generated value and add it to your `.env.local` file as the `CSRF_SECRE
 
 ### BYOK (Bring Your Own Key) Setup
 
-Zola supports BYOK functionality, allowing users to securely store and use their own API keys for AI providers. To enable this feature, you need to configure an encryption key for secure storage of user API keys.
+Zenchi supports BYOK functionality, allowing users to securely store and use their own API keys for AI providers. To enable this feature, you need to configure an encryption key for secure storage of user API keys.
 
 #### Generating an Encryption Key
 
@@ -374,7 +374,7 @@ Uncomment the RLS section in `supabase/schema.sql` for production deployments.
 
 ## Storage Configuration
 
-Zola uses Supabase Storage for file uploads (images, documents, PDFs).
+Zenchi uses Supabase Storage for file uploads (images, documents, PDFs).
 
 ### Step 1: Create Storage Buckets
 
@@ -392,7 +392,7 @@ Add the storage bucket name to your `.env.local`:
 NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET=chat-attachments
 ```
 
-This tells Zola which bucket to use for chat file attachments. The bucket name must match the one you created in your Supabase project.
+This tells Zenchi which bucket to use for chat file attachments. The bucket name must match the one you created in your Supabase project.
 
 ### Step 3: Configure Bucket Policies
 
@@ -572,7 +572,7 @@ Create the buckets `chat-attachments` and `avatars` in your Supabase dashboard:
 
 ## Ollama Setup (Local AI Models)
 
-Ollama allows you to run AI models locally on your machine. Zola has built-in support for Ollama with automatic model detection.
+Ollama allows you to run AI models locally on your machine. Zenchi has built-in support for Ollama with automatic model detection.
 
 ### Installing Ollama
 
@@ -601,8 +601,8 @@ docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
 
 ```bash
 # Clone the repository
-git clone https://github.com/SilkePilon/zola.git
-cd zola
+git clone https://github.com/SilkePilon/Zenchi.git
+cd Zenchi
 
 # Install dependencies
 npm install
@@ -645,9 +645,9 @@ A `Dockerfile` is included in the repository:
 
 #### Models not appearing
 
-1. Refresh the models list in Zola settings
+1. Refresh the models list in Zenchi settings
 2. Check Ollama has models: `ollama list`
-3. Restart Zola if models were added after startup
+3. Restart Zenchi if models were added after startup
 
 #### Performance optimization
 
@@ -704,8 +704,8 @@ DISABLE_OLLAMA=true
 
 ```bash
 # Clone the repository
-git clone https://github.com/SilkePilon/zola.git
-cd zola
+git clone https://github.com/SilkePilon/Zenchi.git
+cd Zenchi
 
 # Install dependencies
 npm install
@@ -718,8 +718,8 @@ npm run dev
 
 ```bash
 # Clone the repository
-git clone https://github.com/SilkePilon/zola.git
-cd zola
+git clone https://github.com/SilkePilon/Zenchi.git
+cd Zenchi
 
 # Install dependencies
 npm install
@@ -763,7 +763,7 @@ ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 ### Option 3: Docker Compose with Ollama (Recommended)
 
-The **complete setup** with both Zola and Ollama is in `docker-compose.ollama.yml`:
+The **complete setup** with both Zenchi and Ollama is in `docker-compose.ollama.yml`:
 
 ```bash
 # Start both services
@@ -777,11 +777,11 @@ docker-compose -f docker-compose.ollama.yml down
 ```
 
 What's included:
-- Zola web interface
+- Zenchi web interface
 - Ollama server with GPU support (if available)
 - Automatic model pulling (llama3.2:3b by default)
 - Health checks for both services
-- Proper networking (Zola to Ollama communication)
+- Proper networking (Zenchi to Ollama communication)
 - Volume persistence for models
 - Ready to use at [http://localhost:3000](http://localhost:3000)
 
@@ -799,11 +799,11 @@ environment:
 
 ### Deploy to Vercel (Recommended)
 
-Vercel is the easiest way to deploy Zola:
+Vercel is the easiest way to deploy Zenchi:
 
 #### Option A: One-Click Deploy
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/SilkePilon/zola)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/SilkePilon/Zenchi)
 
 #### Option B: Manual Deploy
 
@@ -873,7 +873,7 @@ Symptoms: No local models appear in selector
 3. Verify `OLLAMA_BASE_URL` in `.env.local` (default: `http://localhost:11434`)
 4. Check if `DISABLE_OLLAMA=true` is set
 5. Pull at least one model: `ollama pull llama3.2`
-6. Restart Zola after adding models
+6. Restart Zenchi after adding models
 
 </details>
 
@@ -951,8 +951,8 @@ Symptoms: No models load, console shows API errors
 
 Still having issues? Here's how to get help:
 
-1. **Check existing issues**: [GitHub Issues](https://github.com/SilkePilon/zola/issues)
-2. **Search discussions**: [GitHub Discussions](https://github.com/SilkePilon/zola/discussions)
+1. **Check existing issues**: [GitHub Issues](https://github.com/SilkePilon/Zenchi/issues)
+2. **Search discussions**: [GitHub Discussions](https://github.com/SilkePilon/Zenchi/discussions)
 3. **Create new issue**: Include:
    - Error messages (full stack trace)
    - Environment (OS, Node version, deployment platform)
@@ -966,7 +966,7 @@ Enable verbose logging:
 
 ```bash
 # In .env.local
-DEBUG=zola:*
+DEBUG=Zenchi:*
 NODE_ENV=development
 ```
 
@@ -987,22 +987,22 @@ Check browser console and terminal for detailed logs.
 
 ## Community & Support
 
-- **GitHub Issues** - [Report bugs](https://github.com/SilkePilon/zola/issues)
-- **GitHub Discussions** - [Ask questions](https://github.com/SilkePilon/zola/discussions)
+- **GitHub Issues** - [Report bugs](https://github.com/SilkePilon/Zenchi/issues)
+- **GitHub Discussions** - [Ask questions](https://github.com/SilkePilon/Zenchi/discussions)
 - **Discord** - Coming soon
-- **Twitter** - [@zola_chat](https://twitter.com/zola_chat)
+- **Twitter** - [@Zenchi_chat](https://twitter.com/Zenchi_chat)
 
 ---
 
 ## License
 
-Zola is open-source software licensed under the [Apache License 2.0](LICENSE).
+Zenchi is open-source software licensed under the [Apache License 2.0](LICENSE).
 
 ---
 
 <div align="center">
 
-[Back to Top](#zola-installation-guide)
+[Back to Top](#Zenchi-installation-guide)
 
 Made with care by the open-source community
 
@@ -1016,7 +1016,7 @@ Made with care by the open-source community
 
 ### Deployment Platforms
 
-Zola works on various platforms:
+Zenchi works on various platforms:
 
 - Vercel - Recommended, zero-config deployment
 - Netlify - Requires build settings configuration
@@ -1051,7 +1051,7 @@ export const FREE_MODELS_IDS = [
 export const MODEL_DEFAULT = "google:gemini-2.5-pro"
 
 // System prompt
-export const SYSTEM_PROMPT_DEFAULT = `You are Zola, a thoughtful and clear assistant...`
+export const SYSTEM_PROMPT_DEFAULT = `You are Zenchi, a thoughtful and clear assistant...`
 ```
 
 ### Custom Models
@@ -1088,10 +1088,10 @@ docker-compose down
 
 ### Option 3: Docker Compose with Ollama (Recommended for Local AI)
 
-For a complete setup with both Zola and Ollama running locally, use the provided `docker-compose.ollama.yml`:
+For a complete setup with both Zenchi and Ollama running locally, use the provided `docker-compose.ollama.yml`:
 
 ```bash
-# Start both Zola and Ollama services
+# Start both Zenchi and Ollama services
 docker-compose -f docker-compose.ollama.yml up -d
 
 # View logs
@@ -1106,10 +1106,10 @@ This setup includes:
 - **Ollama service** with GPU support (if available)
 - **Automatic model pulling** (llama3.2:3b by default)
 - **Health checks** for both services
-- **Proper networking** between Zola and Ollama
+- **Proper networking** between Zenchi and Ollama
 - **Volume persistence** for Ollama models
 
-The Ollama service will be available at `http://localhost:11434` and Zola will automatically detect all available models.
+The Ollama service will be available at `http://localhost:11434` and Zenchi will automatically detect all available models.
 
 To customize which models are pulled, edit the `docker-compose.ollama.yml` file and modify the `OLLAMA_MODELS` environment variable:
 
@@ -1122,7 +1122,7 @@ environment:
 
 ### Deploy to Vercel
 
-The easiest way to deploy Zola is using Vercel:
+The easiest way to deploy Zenchi is using Vercel:
 
 1. Push your code to a Git repository (GitHub, GitLab, etc.)
 2. Import the project into Vercel
@@ -1151,7 +1151,7 @@ npm start
 
 ## Configuration Options
 
-You can customize various aspects of Zola by modifying the configuration files:
+You can customize various aspects of Zenchi by modifying the configuration files:
 
 - `app/lib/config.ts`: Configure AI models, daily message limits, etc.
 - `.env.local`: Set environment variables and API keys

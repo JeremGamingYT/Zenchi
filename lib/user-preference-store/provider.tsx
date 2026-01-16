@@ -137,6 +137,7 @@ export function UserPreferencesProvider({
       },
       enabled: typeof window !== "undefined",
       staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 30, // 30 minutes
       retry: (failureCount, error) => {
         // Only retry for authenticated users and network errors
         return isAuthenticated && failureCount < 2
@@ -158,11 +159,9 @@ export function UserPreferencesProvider({
 
       try {
         return await updateUserPreferences(update)
-      } catch (error) {
-        console.error(
-          "Failed to update user preferences in database, falling back to localStorage:",
-          error
-        )
+      } catch {
+        // Expected for unauthenticated users - localStorage fallback is working
+        console.debug("Using localStorage for preferences (user not authenticated)")
         saveToLocalStorage(updated)
         return updated
       }

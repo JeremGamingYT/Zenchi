@@ -18,6 +18,7 @@ import { ButtonSettings } from "./button-settings"
 import { ButtonSearch } from "./button-search"
 import { ButtonContextUsage } from "./button-context-usage"
 import { FileList } from "./file-list"
+import { ActiveToolsBadges } from "./active-tools-badges"
 
 type ChatInputProps = {
   value: string
@@ -190,7 +191,7 @@ export function ChatInput({
           <FileList files={files} onFileRemove={onFileRemove} />
           <PromptInputTextarea
             ref={textareaRef}
-            placeholder="Ask Zola"
+            placeholder="Ask Zenchi"
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
             className="min-h-[44px] pt-3 pl-4 text-base leading-[1.3] sm:text-base md:text-base"
@@ -202,6 +203,7 @@ export function ChatInput({
                 isUserAuthenticated={isUserAuthenticated}
               />
               <ButtonSettings isUserAuthenticated={isUserAuthenticated} />
+              <ActiveToolsBadges />
               {hasSearchSupport ? (
                 <ButtonSearch
                   isSelected={enableSearch}

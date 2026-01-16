@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="./public/cover_zola.jpg" alt="Zola - Open Source AI Chat Interface" width="100%">
+  <img src="./public/cover_Zenchi.jpg" alt="Zenchi - Open Source AI Chat Interface" width="100%">
 
-# Zola
+# Zenchi
 
 ### The Open-Source Multi-Model AI Chat Interface
 
@@ -12,9 +12,9 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://www.typescriptlang.org)
 [![Vercel AI SDK](https://img.shields.io/badge/Vercel%20AI%20SDK-5.0-black)](https://sdk.vercel.ai)
 
-[Website](https://zola.chat) • [Documentation](./INSTALL.md) • [Discord](#) • [Twitter](#)
+[Website](https://Zenchi.chat) • [Documentation](./INSTALL.md) • [Discord](#) • [Twitter](#)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/SilkePilon/zola)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/SilkePilon/Zenchi)
 
 </div>
 
@@ -29,7 +29,7 @@
 > - [X] Models.dev API integration
 > - [x] Budget limits and warnings system
 > - [ ] Next.js 15 compatibility updates
-> - [ ] Use Zola as OpenAi compatible server
+> - [ ] Use Zenchi as OpenAi compatible server
 
 ---
 
@@ -39,7 +39,7 @@
 
 ### Main Chat Interface
 
-<img src="./public/examples/main_page.png" alt="Zola Main Chat Interface" width="90%">
+<img src="./public/examples/main_page.png" alt="Zenchi Main Chat Interface" width="90%">
 
 ### Model Providers
 
@@ -101,8 +101,8 @@ Add your own AI models to the interface through the settings panel. Use any Open
 
 ```bash
 # Clone the repository
-git clone https://github.com/SilkePilon/zola.git
-cd zola
+git clone https://github.com/SilkePilon/Zenchi.git
+cd Zenchi
 
 # Install dependencies
 npm install
@@ -122,14 +122,14 @@ curl -fsSL https://ollama.ai/install.sh | sh
 # Pull a model (e.g., LLaMA 3.2)
 ollama pull llama3.2
 
-# Clone and run Zola
-git clone https://github.com/SilkePilon/zola.git
-cd zola
+# Clone and run Zenchi
+git clone https://github.com/SilkePilon/Zenchi.git
+cd Zenchi
 npm install
 npm run dev
 ```
 
-Zola will automatically detect all your Ollama models. No configuration needed - just start chatting with your local models completely free and private.
+Zenchi will automatically detect all your Ollama models. No configuration needed - just start chatting with your local models completely free and private.
 
 > [!TIP]
 > Using Ollama is completely free and runs entirely on your machine. Perfect for privacy-conscious users or those who want to avoid API costs!
@@ -137,12 +137,12 @@ Zola will automatically detect all your Ollama models. No configuration needed -
 ### Option 3: Docker with Ollama
 
 ```bash
-git clone https://github.com/SilkePilon/zola.git
-cd zola
+git clone https://github.com/SilkePilon/Zenchi.git
+cd Zenchi
 docker-compose -f docker-compose.ollama.yml up
 ```
 
-Access Zola at [http://localhost:3000](http://localhost:3000). Add API keys for cloud providers through Settings, or use the pre-configured Ollama models immediately.
+Access Zenchi at [http://localhost:3000](http://localhost:3000). Add API keys for cloud providers through Settings, or use the pre-configured Ollama models immediately.
 
 ---
 
@@ -153,15 +153,15 @@ Access Zola at [http://localhost:3000](http://localhost:3000). Add API keys for 
 For complete setup instructions including database configuration (Supabase), authentication setup (Google OAuth, guest mode), file upload configuration, and environment variables, see the [INSTALL.md](./INSTALL.md) guide.
 
 > [!NOTE]
-> Zola requires a Supabase account for authentication and data storage. A free tier is available and sufficient for personal use.
+> Zenchi requires a Supabase account for authentication and data storage. A free tier is available and sufficient for personal use.
 
 ### Adding Custom Models
 
-Zola supports adding custom AI models in two ways:
+Zenchi supports adding custom AI models in two ways:
 
 #### Method 1: Add Custom Models via UI
 
-1. Log in to your Zola instance
+1. Log in to your Zenchi instance
 2. Open Settings and navigate to Models
 3. Click "Add Custom Model"
 4. Fill in the model details:
@@ -178,7 +178,7 @@ Your custom model will now appear in the model selector. 2. **Fork the [models.d
 
 #### Method 2: Contribute to models.dev
 
-To make your model available to all Zola users and the broader AI community:
+To make your model available to all Zenchi users and the broader AI community:
 
 1. Visit [models.dev](https://models.dev)
 2. Fork the [models.dev repository](https://github.com/modelcontextprotocol/models.dev)
@@ -206,20 +206,20 @@ To make your model available to all Zola users and the broader AI community:
                 "input": ["text", "image"],
                 "output": ["text"]
 4. **Submit a Pull Request**
-5. Once merged, your model will be available in Zola (and other tools using models.dev)!
+5. Once merged, your model will be available in Zenchi (and other tools using models.dev)!
 
 > [!TIP]
-> Contributing to models.dev makes your model available not just in Zola, but across the entire ecosystem of tools that use the models.dev API!
+> Contributing to models.dev makes your model available not just in Zenchi, but across the entire ecosystem of tools that use the models.dev API!
 
 #### OpenAI-Compatible APIs
 ```
 
 4. **Submit a Pull Request**
-5. Once merged, your model will be available in Zola (and other tools using models.dev)!
+5. Once merged, your model will be available in Zenchi (and other tools using models.dev)!
 
 #### OpenAI-Compatible APIs
 
-Zola works with any OpenAI-compatible API. Popular options include:
+Zenchi works with any OpenAI-compatible API. Popular options include:
 
 - OpenRouter - Access 100+ models through one API
 - Together AI - Fast inference for open-source models

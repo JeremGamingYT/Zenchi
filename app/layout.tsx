@@ -12,6 +12,7 @@ import { TanstackQueryProvider } from "@/lib/tanstack-query/tanstack-query-provi
 import { UserPreferencesProvider } from "@/lib/user-preference-store/provider"
 import { UserProvider } from "@/lib/user-store/provider"
 import { BudgetProvider } from "@/lib/budget-store/provider"
+import { ToolsProvider } from "@/lib/tools-store/provider"
 import { getUserProfile } from "@/lib/user/api"
 import { ThemeProvider } from "next-themes"
 import Script from "next/script"
@@ -28,14 +29,14 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Zola",
+  title: "Zenchi",
   description:
-    "Zola is the open-source interface for AI chat. Multi-model, BYOK-ready, and fully self-hostable. Use Claude, OpenAI, Gemini, local models, and more, all in one place.",
+    "Zenchi is the open-source interface for AI chat. Multi-model, BYOK-ready, and fully self-hostable. Use Claude, OpenAI, Gemini, local models, and more, all in one place.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Zola",
+    title: "Zenchi",
   },
   formatDetection: {
     telephone: false,
@@ -86,8 +87,10 @@ export default async function RootLayout({
                             disableTransitionOnChange
                           >
                             <SidebarProvider defaultOpen>
-                              <Toaster position="top-center" />
-                              {children}
+                              <ToolsProvider>
+                                <Toaster position="top-center" />
+                                {children}
+                              </ToolsProvider>
                             </SidebarProvider>
                           </ThemeProvider>
                         </TooltipProvider>
