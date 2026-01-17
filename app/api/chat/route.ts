@@ -27,6 +27,9 @@ type ChatRequest = {
   message_group_id?: string
   mcpServers?: MCPServerConfig[]
   ollamaEndpoint?: string // For Ollama models, pass the configured endpoint
+  thinkingLevel?: string
+  planningEnabled?: boolean
+  agentsEnabled?: boolean
 }
 
 export async function POST(req: Request) {
@@ -43,6 +46,9 @@ export async function POST(req: Request) {
       message_group_id,
       mcpServers,
       ollamaEndpoint,
+      thinkingLevel,
+      planningEnabled,
+      agentsEnabled,
     } = body as ChatRequest
 
     if (!messages || !chatId || !userId) {
@@ -106,7 +112,7 @@ export async function POST(req: Request) {
 
       makeModel = async () => {
         console.log("[Ollama Debug] Creating model with endpoint:", ollamaEndpoint)
-        return createOllamaModel(ollamaEndpoint, ollamaModelId)
+        return createOllamaModel(ollamaEndpoint, ollamaModelId, thinkingLevel)
       }
     } else if (isOllamaModel && !ollamaEndpoint) {
       // Ollama model but no endpoint - this is an error
@@ -137,7 +143,45 @@ export async function POST(req: Request) {
       makeModel = modelConfig.apiSdk
     }
 
-    const effectiveSystemPrompt = systemPrompt || SYSTEM_PROMPT_DEFAULT
+    let effectiveSystemPrompt = systemPrompt || SYSTEM_PROMPT_DEFAULT
+
+    if (agentsEnabled) {
+      effectiveSystemPrompt = `Tu es l'Orchestrateur d'un système multi-agent.
+
+ÉTAT ACTUEL :
+- Objectif global : Résoudre la demande de l'utilisateur
+- Progression : En cours
+- Connaissances acquises : À acquérir via exploration
+- Blocages actuels : Aucun identifié
+
+TES RESPONSABILITÉS :
+1. Décomposer problèmes complexes
+2. Déléguer aux outils/agents appropriés
+3. Intégrer résultats
+4. Identifier besoins de vérification
+5. Décider de la continuation ou terminaison
+
+PROCESSUS DE DÉCISION :
+- Énonce explicitement tes hypothèses
+- Identifie ce qui est certain vs incertain
+- Planifie la vérification avant l'action
+- Anticipe les points de défaillance
+
+CRITÈRES DE QUALITÉ :
+- Exactitude > Vitesse
+- Toujours vérifier avant de conclure
+- Documenter le raisonnement
+- Admettre les limitations
+
+CRITICAL: You MUST start by scanning the entire workspace (all files and directories) using 'list_files' to understand the context before doing anything else.
+      `
+    } else if (planningEnabled) {
+      effectiveSystemPrompt = `You are a Planning Agent.
+Your goal is to create a comprehensive Implementation Plan for the user's request.
+CRITICAL: Before creating a plan, you MUST scan the entire workspace (all files and directories) using 'list_files' to understand the existing codebase.
+Once scanned, analyze the structure and requirements.
+Then, output a detailed plan in Markdown format.`
+    }
 
     let apiKey: string | undefined
     if (isAuthenticated && userId && modelConfig.providerId !== "ollama") {

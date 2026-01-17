@@ -1,4 +1,5 @@
 import { useChatDraft } from "@/app/hooks/use-chat-draft"
+import { useTools } from "@/lib/tools-store/provider"
 import { toast } from "@/components/ui/toast"
 import { getOrCreateGuestUserId } from "@/lib/api"
 import { MESSAGE_MAX_LENGTH, SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
@@ -99,6 +100,7 @@ export function useChatCore({
 
   // MCP store
   const { servers: mcpServers } = useMCP()
+  const { thinkingLevel, planningEnabled, agentsEnabled } = useTools()
 
   // Refs and derived state
   const hasSentFirstMessageRef = useRef(false)
@@ -278,6 +280,9 @@ export function useChatCore({
           systemPrompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
           enableSearch,
           mcpServers,
+          thinkingLevel: thinkingLevel === "off" ? undefined : thinkingLevel,
+          planningEnabled,
+          agentsEnabled,
           // Pass Ollama endpoint for remote connections
           ollamaEndpoint: selectedModel.startsWith("ollama/") ? getOllamaEndpoint() : undefined,
         },
@@ -346,6 +351,9 @@ export function useChatCore({
             model: selectedModel,
             isAuthenticated,
             systemPrompt: SYSTEM_PROMPT_DEFAULT,
+            thinkingLevel: thinkingLevel === "off" ? undefined : thinkingLevel,
+            planningEnabled,
+            agentsEnabled,
             ollamaEndpoint: selectedModel.startsWith("ollama/") ? getOllamaEndpoint() : undefined,
           },
         }
@@ -382,6 +390,9 @@ export function useChatCore({
         model: selectedModel,
         isAuthenticated,
         systemPrompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
+        thinkingLevel: thinkingLevel === "off" ? undefined : thinkingLevel,
+        planningEnabled,
+        agentsEnabled,
         ollamaEndpoint: selectedModel.startsWith("ollama/") ? getOllamaEndpoint() : undefined,
       },
     }

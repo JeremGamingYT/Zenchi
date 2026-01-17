@@ -20,13 +20,14 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
-import { PaintBrush, Plus, Gear, CaretRight, Kanban, Robot, Check } from "@phosphor-icons/react"
+import { PaintBrush, Plus, Gear, CaretRight, Kanban, Robot, Check, Brain } from "@phosphor-icons/react"
 import { useTools } from "@/lib/tools-store/provider"
 import { SlidersVertical } from "@/components/animate-ui/icons/sliders-vertical"
 import { AnimateIcon } from "@/components/animate-ui/icons/icon"
 import React, { useState } from "react"
 import { UseStyleSubmenu } from "./submenu-use-style"
 import { MCPServersSubmenu } from "./submenu-mcp-servers"
+import { SubmenuThinking } from "./submenu-thinking"
 import { PopoverContentAuth } from "./popover-content-auth"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -39,6 +40,7 @@ export function ButtonSettings({ disabled = false, isUserAuthenticated = true }:
   const [isOpen, setIsOpen] = useState(false)
   const [submenuOpen, setSubmenuOpen] = useState(false)
   const [mcpSubmenuOpen, setMcpSubmenuOpen] = useState(false)
+  const [thinkingSubmenuOpen, setThinkingSubmenuOpen] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   const { planningEnabled, agentsEnabled, togglePlanning, toggleAgents } = useTools()
 
@@ -48,6 +50,10 @@ export function ButtonSettings({ disabled = false, isUserAuthenticated = true }:
 
   const handleManageMCPServers = () => {
     setMcpSubmenuOpen(true)
+  }
+
+  const handleThinking = () => {
+    setThinkingSubmenuOpen(true)
   }
 
   // If user is not authenticated, show the auth popover
@@ -83,6 +89,7 @@ export function ButtonSettings({ disabled = false, isUserAuthenticated = true }:
       if (!open) {
         setSubmenuOpen(false);
         setMcpSubmenuOpen(false);
+        setThinkingSubmenuOpen(false);
       }
     }}>
       <Tooltip>
@@ -118,7 +125,7 @@ export function ButtonSettings({ disabled = false, isUserAuthenticated = true }:
       >
         <div className="flex flex-col relative">
           <AnimatePresence mode="wait" initial={false}>
-            {!submenuOpen && !mcpSubmenuOpen ? (
+            {!submenuOpen && !mcpSubmenuOpen && !thinkingSubmenuOpen ? (
               <motion.div
                 key="main-menu"
                 initial={{ x: 0, opacity: 1 }}
@@ -166,6 +173,19 @@ export function ButtonSettings({ disabled = false, isUserAuthenticated = true }:
                   {agentsEnabled && <Check className="ml-auto size-4 text-primary" weight="bold" />}
                 </DropdownMenuItem>
 
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.preventDefault()
+                    handleThinking()
+                  }}
+                  onSelect={(e) => e.preventDefault()}
+                  className="gap-2.5 h-8 cursor-pointer"
+                >
+                  <Brain className="size-4" />
+                  <span>Thinking Level</span>
+                  <CaretRight className="ml-auto size-4 opacity-50" />
+                </DropdownMenuItem>
+
                 <DropdownMenuSeparator className="mx-1.5" />
 
                 <DropdownMenuItem
@@ -186,10 +206,14 @@ export function ButtonSettings({ disabled = false, isUserAuthenticated = true }:
                 isOpen={submenuOpen}
                 onClose={() => setSubmenuOpen(false)}
               />
-            ) : (
+            ) : mcpSubmenuOpen ? (
               <MCPServersSubmenu
                 onBack={() => setMcpSubmenuOpen(false)}
                 onClose={() => setIsOpen(false)}
+              />
+            ) : (
+              <SubmenuThinking
+                onBack={() => setThinkingSubmenuOpen(false)}
               />
             )}
           </AnimatePresence>

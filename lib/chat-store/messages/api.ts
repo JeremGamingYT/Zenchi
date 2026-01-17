@@ -32,7 +32,7 @@ export async function getMessagesFromDb(
 
   if (!data || error) {
     console.error("Failed to fetch messages:", error)
-    return []
+    throw new Error(error?.message || "Failed to fetch messages")
   }
 
   return data.map((message) => {
@@ -46,7 +46,7 @@ export async function getMessagesFromDb(
         parsedParts = undefined
       }
     }
-    
+
     return {
       id: String(message.id),
       role: message.role as ChatMessage["role"],

@@ -4,34 +4,44 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 
 const TOOLS_STORAGE_KEY = "zenchi-tools-state"
 
+export type ThinkingLevel = "off" | "low" | "medium" | "high"
+
 interface ToolsState {
     planningEnabled: boolean
     agentsEnabled: boolean
+    thinkingLevel: ThinkingLevel
     setPlanningEnabled: (enabled: boolean) => void
     setAgentsEnabled: (enabled: boolean) => void
+    setThinkingLevel: (level: ThinkingLevel) => void
     togglePlanning: () => void
     toggleAgents: () => void
 }
 
 const ToolsContext = createContext<ToolsState | undefined>(undefined)
 
-function getStoredState(): { planningEnabled: boolean; agentsEnabled: boolean } {
-    if (typeof window === "undefined") return { planningEnabled: false, agentsEnabled: false }
+function getStoredState(): { planningEnabled: boolean; agentsEnabled: boolean; thinkingLevel: ThinkingLevel } {
+    if (typeof window === "undefined") return { planningEnabled: false, agentsEnabled: false, thinkingLevel: "off" }
 
     try {
         const stored = localStorage.getItem(TOOLS_STORAGE_KEY)
         if (stored) {
-            return JSON.parse(stored)
+            const parsed = JSON.parse(stored)
+            return {
+                planningEnabled: parsed.planningEnabled ?? false,
+                agentsEnabled: parsed.agentsEnabled ?? false,
+                thinkingLevel: parsed.thinkingLevel ?? "off"
+            }
         }
     } catch {
         // Ignore parsing errors
     }
-    return { planningEnabled: false, agentsEnabled: false }
+    return { planningEnabled: false, agentsEnabled: false, thinkingLevel: "off" }
 }
 
 export function ToolsProvider({ children }: { children: ReactNode }) {
     const [planningEnabled, setPlanningEnabled] = useState(false)
     const [agentsEnabled, setAgentsEnabled] = useState(false)
+    const [thinkingLevel, setThinkingLevel] = useState<ThinkingLevel>("off")
     const [isInitialized, setIsInitialized] = useState(false)
 
     // Load from localStorage on mount
@@ -39,6 +49,7 @@ export function ToolsProvider({ children }: { children: ReactNode }) {
         const stored = getStoredState()
         setPlanningEnabled(stored.planningEnabled)
         setAgentsEnabled(stored.agentsEnabled)
+        setThinkingLevel(stored.thinkingLevel)
         setIsInitialized(true)
     }, [])
 
@@ -48,9 +59,9 @@ export function ToolsProvider({ children }: { children: ReactNode }) {
 
         localStorage.setItem(
             TOOLS_STORAGE_KEY,
-            JSON.stringify({ planningEnabled, agentsEnabled })
+            JSON.stringify({ planningEnabled, agentsEnabled, thinkingLevel })
         )
-    }, [planningEnabled, agentsEnabled, isInitialized])
+    }, [planningEnabled, agentsEnabled, thinkingLevel, isInitialized])
 
     const togglePlanning = () => setPlanningEnabled((prev) => !prev)
     const toggleAgents = () => setAgentsEnabled((prev) => !prev)
@@ -60,8 +71,10 @@ export function ToolsProvider({ children }: { children: ReactNode }) {
             value={{
                 planningEnabled,
                 agentsEnabled,
+                thinkingLevel,
                 setPlanningEnabled,
                 setAgentsEnabled,
+                setThinkingLevel,
                 togglePlanning,
                 toggleAgents,
             }}

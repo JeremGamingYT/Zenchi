@@ -11,22 +11,49 @@ export const localTools = {
     list_files: tool({
         description: "List files and directories at a specific path on the local user's PC.",
         parameters: z.object({
-            path: z.string().describe("The absolute or relative path to list files from. Defaults to current directory if empty."),
+            path: z.string().optional().describe("The absolute or relative path to list files from. Defaults to current directory if empty."),
+            recursive: z.boolean().optional().describe("If true, list files recursively. Ignores .git, node_modules, and other build directories."),
         }),
-        execute: async ({ path: dirPath }: { path?: string }) => {
+        execute: async ({ path: dirPath, recursive }: { path?: string, recursive?: boolean }) => {
             try {
                 const targetPath = dirPath ? path.resolve(process.cwd(), dirPath) : process.cwd()
-                const entries = await fs.readdir(targetPath, { withFileTypes: true })
 
-                const files = entries.map(entry => ({
-                    name: entry.name,
-                    type: entry.isDirectory() ? "directory" : "file",
-                }))
-
-                return {
-                    path: targetPath,
-                    files,
+                if (!recursive) {
+                    const entries = await fs.readdir(targetPath, { withFileTypes: true })
+                    const files = entries.map(entry => ({
+                        name: entry.name,
+                        type: entry.isDirectory() ? "directory" : "file",
+                    }))
+                    return { path: targetPath, files }
                 }
+
+                // Recursive implementation
+                const getFilesRecursively = async (dir: string): Promise<any[]> => {
+                    const entries = await fs.readdir(dir, { withFileTypes: true })
+                    const results = []
+
+                    for (const entry of entries) {
+                        const relativePath = path.relative(targetPath, path.join(dir, entry.name))
+
+                        // Ignore common build/hidden directories
+                        if (['.git', 'node_modules', '.next', 'dist', 'build', '.checkpoints'].includes(entry.name)) {
+                            continue
+                        }
+
+                        if (entry.isDirectory()) {
+                            results.push({ name: relativePath, type: "directory" })
+                            const subFiles = await getFilesRecursively(path.join(dir, entry.name))
+                            results.push(...subFiles)
+                        } else {
+                            results.push({ name: relativePath, type: "file" })
+                        }
+                    }
+                    return results
+                }
+
+                const files = await getFilesRecursively(targetPath)
+                return { path: targetPath, files }
+
             } catch (error: any) {
                 return { error: `Failed to list files: ${error.message}` }
             }

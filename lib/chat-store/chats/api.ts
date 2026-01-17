@@ -23,7 +23,7 @@ export async function getChatsForUserInDb(userId: string): Promise<Chats[]> {
 
   if (!data || error) {
     console.error("Failed to fetch chats:", error)
-    return []
+    throw new Error(error?.message || "Failed to fetch chats")
   }
 
   return data
@@ -58,7 +58,7 @@ export async function getAllUserChatsInDb(userId: string): Promise<Chats[]> {
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
 
-  if (!data || error) return []
+  if (!data || error) throw new Error(error?.message || "Failed to fetch user chats")
   return data
 }
 
