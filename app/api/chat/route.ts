@@ -146,35 +146,27 @@ export async function POST(req: Request) {
     let effectiveSystemPrompt = systemPrompt || SYSTEM_PROMPT_DEFAULT
 
     if (agentsEnabled) {
-      effectiveSystemPrompt = `Tu es l'Orchestrateur d'un système multi-agent.
+      effectiveSystemPrompt = `You are the ORCHESTRATOR of an advanced Multi-Agent System.
+Your ONLY goal is to solve the user's request by coordinating specialized agents.
+You are NOT to solve the problem yourself unless it is trivial.
 
-ÉTAT ACTUEL :
-- Objectif global : Résoudre la demande de l'utilisateur
-- Progression : En cours
-- Connaissances acquises : À acquérir via exploration
-- Blocages actuels : Aucun identifié
+### THE AGENT LOOP (STRICT PROTOCOL)
+You MUST follow this lifecycle for every non-trivial task:
+1. **PLAN**: Consult 'expert_architect' or 'expert_researcher' to define the plan.
+2. **EXECUTE**: Consult 'expert_implementer' to write code or perform actions.
+3. **VERIFY**: Consult 'expert_tester' or 'expert_critic' to review the work.
+4. **FIX**: If verification fails, loop back to EXECUTE.
 
-TES RESPONSABILITÉS :
-1. Décomposer problèmes complexes
-2. Déléguer aux outils/agents appropriés
-3. Intégrer résultats
-4. Identifier besoins de vérification
-5. Décider de la continuation ou terminaison
+### TOOL USAGE (CRITICAL)
+- **GPT-OSS USERS**: You MUST use the provided tools (edit_file, consult_expert, etc.) to perform actions.
+- Do NOT output code blocks suggesting actions. RUN THE TOOL.
+- If you need to edit a file, call 'edit_file'.
+- If you need to run a command, call 'run_command'.
+- **NEVER** finish the task without verifying the result using 'list_files', 'read_file', or 'expert_tester'.
 
-PROCESSUS DE DÉCISION :
-- Énonce explicitement tes hypothèses
-- Identifie ce qui est certain vs incertain
-- Planifie la vérification avant l'action
-- Anticipe les points de défaillance
-
-CRITÈRES DE QUALITÉ :
-- Exactitude > Vitesse
-- Toujours vérifier avant de conclure
-- Documenter le raisonnement
-- Admettre les limitations
-
-CRITICAL: You MUST start by scanning the entire workspace (all files and directories) using 'list_files' to understand the context before doing anything else.
-      `
+### INITIALIZATION
+Start by scanning the workspace to understand the context.
+`
     } else if (planningEnabled) {
       effectiveSystemPrompt = `You are a Planning Agent.
 Your goal is to create a comprehensive Implementation Plan for the user's request.
@@ -230,20 +222,32 @@ Then, output a detailed plan in Markdown format.`
     try {
       const modelInstance = await makeModel(apiKey, { enableSearch })
 
+
       // Add local tools
       const { localTools } = await import("@/lib/tools/local")
+      const { advancedTools } = await import("@/lib/tools/advanced")
+
+      let agentTools = {}
+      if (agentsEnabled) {
+        const { createAgentTools } = await import("@/lib/tools/agents")
+        agentTools = createAgentTools(modelInstance)
+      }
+
+      const allTools = {
+        ...localTools,
+        ...advancedTools,
+        ...agentTools,
+        ...(mcpTools || {})
+      }
 
       const streamTextOptions: Parameters<typeof streamText>[0] = {
         model: modelInstance,
         system: effectiveSystemPrompt,
         messages: modelMessages,
         // @ts-ignore - maxSteps is supported in recent ai SDK versions
-        maxSteps: 10, // Enable multi-turn tool calling (up to 10 steps)
-        tools: {
-          ...localTools,
-          ...(mcpTools || {})
-        } as any, // Cast to any to avoid complex tool type mismatches
-        stopWhen: stepCountIs(10),
+        maxSteps: 20, // Increased for agentic loops & confirmation steps
+        tools: allTools as any, // Cast to any to avoid complex tool type mismatches
+        stopWhen: stepCountIs(20),
         onFinish: async ({ response, usage }) => {
           try {
             let savedMessageId: number | undefined
@@ -275,6 +279,26 @@ Then, output a detailed plan in Markdown format.`
                 }
               } catch (err) {
                 console.error("Error fetching message ID:", err)
+              }
+
+              // Title Generation Logic
+              // Check if this is the first interaction (or if we suspect it needs a title)
+              // We can check if messages.length is small (1 user msg)
+              if (messages.length === 1 && messages[0].role === 'user') {
+                // It's the first message!
+                const userContent = (messages[0] as any).content
+                if (typeof userContent === 'string') {
+                  // Fire and forget title generation
+                  (async () => {
+                    try {
+                      const { generateChatTitle, updateChatTitle } = await import("@/lib/chat/title-generator")
+                      const newTitle = await generateChatTitle(userContent, modelInstance)
+                      await updateChatTitle(userId, chatId, newTitle, supabase)
+                    } catch (titleError) {
+                      console.error("Error generating title:", titleError)
+                    }
+                  })()
+                }
               }
             }
 
@@ -309,8 +333,6 @@ Then, output a detailed plan in Markdown format.`
           throw error
         }
       }
-
-
 
       const result = streamText(streamTextOptions)
 

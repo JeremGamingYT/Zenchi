@@ -55,12 +55,12 @@ export function MessageAssistant({
 }: MessageAssistantProps) {
   const { preferences } = useUserPreferences()
   const sources = getSources(parts)
-  
+
   // Handle both AI SDK v5 formats: "tool-call"/"tool-result" and nested "tool-invocation"
   // Create a display-only copy to avoid mutating original message data
   const toolInvocationParts = useMemo(() => {
     if (!parts) return undefined
-    
+
     const filtered = parts.filter((part) => {
       if (typeof part.type !== "string") return false
       // Direct AI SDK v5 format
@@ -69,7 +69,7 @@ export function MessageAssistant({
       if (part.type === "tool-invocation" && (part as any).toolInvocation) return true
       return false
     })
-    
+
     return filtered.map((part) => {
       // Normalize nested format to flat format for display only
       if (part.type === "tool-invocation" && (part as any).toolInvocation) {
@@ -81,7 +81,7 @@ export function MessageAssistant({
         } else if (state === "partial-call" || state === "call") {
           state = "input-available"
         }
-        
+
         return {
           type: `tool-${inv.toolName}`,
           toolCallId: inv.toolCallId,
@@ -97,30 +97,35 @@ export function MessageAssistant({
       return { ...part }
     }) as any[]
   }, [parts])
-  // Collect reasoning parts (support multiple chunks)
-  const reasoningParts = (parts?.filter((part) => part.type === "reasoning") || []) as any[]
-  const reasoningText: string | undefined = (() => {
-    if (!reasoningParts || reasoningParts.length === 0) return undefined
-    const collectText = (p: any): string | undefined => {
-      if (typeof p?.text === "string" && p.text.length > 0) return p.text
-      if (typeof p?.reasoning === "string" && p.reasoning.length > 0)
-        return p.reasoning
-      const details = p?.details
-      if (Array.isArray(details)) {
-        const textDetails = details
-          .map((d: any) => (typeof d?.text === "string" ? d.text : undefined))
-          .filter((t: any): t is string => !!t)
-        if (textDetails.length > 0) return textDetails.join("\n")
+  // Collect reasoning groups (separated by non-reasoning parts)
+  const reasoningGroups = useMemo(() => {
+    if (!parts) return []
+    const groups: string[] = []
+    let currentGroup: string[] = []
+
+    for (const part of parts) {
+      if (part.type === "reasoning") {
+        const text = (part as any).text || (part as any).reasoning ||
+          (Array.isArray((part as any).details)
+            ? (part as any).details.map((d: any) => d.text).filter(Boolean).join("\n")
+            : "")
+
+        if (text) currentGroup.push(text)
+      } else {
+        // Non-reasoning part breaks the group
+        if (currentGroup.length > 0) {
+          groups.push(currentGroup.join("\n"))
+          currentGroup = []
+        }
       }
-      return undefined
     }
-    const texts = reasoningParts
-      .map(collectText)
-      .filter((t): t is string => typeof t === "string" && t.length > 0)
-    if (texts.length === 0) return undefined
-    // Join multiple chunks with newlines to reflect streaming accumulation
-    return texts.join("\n")
-  })()
+    // Add trailing group
+    if (currentGroup.length > 0) {
+      groups.push(currentGroup.join("\n"))
+    }
+
+    return groups
+  }, [parts])
   const contentNullOrEmpty = children === null || children === ""
   const isLastStreaming = status === "streaming" && isLast
   const searchImageResults =
@@ -146,11 +151,11 @@ export function MessageAssistant({
   // Assistant-generated image/file parts (e.g. inline image outputs)
   type ImagePart = { mimeType: string; data: string }
   const assistantImageParts: ImagePart[] = []
-  
+
   for (const p of parts || []) {
     if (
-      typeof p === 'object' && p !== null && 
-      'type' in p && (p as { type?: string }).type === "file" && 
+      typeof p === 'object' && p !== null &&
+      'type' in p && (p as { type?: string }).type === "file" &&
       'mimeType' in p && typeof (p as { mimeType?: string }).mimeType === "string" &&
       (p as { mimeType?: string }).mimeType?.startsWith("image") &&
       'data' in p && typeof (p as { data?: string }).data === "string"
@@ -221,12 +226,13 @@ export function MessageAssistant({
             ))}
           </div>
         )}
-        {reasoningText && (
+        {reasoningGroups.map((groupText, index) => (
           <Reasoning
-            reasoningText={reasoningText}
-            isStreaming={status === "streaming"}
+            key={index}
+            reasoningText={groupText}
+            isStreaming={status === "streaming" && index === reasoningGroups.length - 1}
           />
-        )}
+        ))}
 
         {toolInvocationParts &&
           toolInvocationParts.length > 0 &&

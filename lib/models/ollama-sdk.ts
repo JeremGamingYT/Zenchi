@@ -22,21 +22,25 @@ export async function createOllamaModel(endpoint: string, modelId: string, think
             "ngrok-skip-browser-warning": "true",
         } : undefined,
         fetch: async (url, options) => {
-            if (options?.body && thinkingLevel && thinkingLevel !== "off") {
+            if (options?.body) {
                 try {
                     const body = JSON.parse(options.body as string)
-                    const budgets: Record<string, number> = { low: 1024, medium: 4096, high: 32768 } // Increased high budget
-                    const budget = budgets[thinkingLevel] || 0
 
-                    if (budget > 0) {
-                        // Ollama thinking parameter injection
-                        // Note: Field name depends on current Ollama version/model, assuming 'thinking' object
-                        // or similar. For now, we inject 'thinking_budget' and 'thinking' object to cover bases
-                        // if specific models support it.
-                        // Actually, standard Ollama reasoning might just need the budget if model is enabled.
-                        // We'll inject `thinking` object which is common for new reasoning features.
-                        body.thinking = { budget }
+                    // Handle 'think' parameter for gpt-oss and similar models
+                    if (thinkingLevel && thinkingLevel !== "off") {
+                        if (modelId.includes("gpt-oss")) {
+                            // Specialized support for gpt-oss which expects "low"|"medium"|"high"
+                            body.think = thinkingLevel
+                        } else {
+                            // Standard/Future Ollama support (budget based)
+                            const budgets: Record<string, number> = { low: 1024, medium: 4096, high: 32768 }
+                            const budget = budgets[thinkingLevel] || 0
+                            if (budget > 0) {
+                                body.thinking = { budget }
+                            }
+                        }
                     }
+
                     options.body = JSON.stringify(body)
                 } catch (e) {
                     console.error("Failed to inject thinking params:", e)
