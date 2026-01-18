@@ -1,125 +1,91 @@
-✅ Dépendances ATLAS installées!
-
-🖥️ ATLAS initialisé sur: cuda (1 GPU(s))
-
-
- █████╗ ████████╗██╗      █████╗ ███████╗    ████████╗██████╗  █████╗ ██╗███╗   ██╗██╗███╗   ██╗ ██████╗ 
-██╔══██╗╚══██╔══╝██║     ██╔══██╗██╔════╝    ╚══██╔══╝██╔══██╗██╔══██╗██║████╗  ██║██║████╗  ██║██╔════╝ 
-███████║   ██║   ██║     ███████║███████╗       ██║   ██████╔╝███████║██║██╔██╗ ██║██║██╔██╗ ██║██║  ███╗
-██╔══██║   ██║   ██║     ██╔══██║╚════██║       ██║   ██╔══██╗██╔══██║██║██║╚██╗██║██║██║╚██╗██║██║   ██║
-██║  ██║   ██║   ███████╗██║  ██║███████║       ██║   ██║  ██║██║  ██║██║██║ ╚████║██║██║ ╚████║╚██████╔╝
-╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝       ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝╚═╝╚═╝  ╚═══╝ ╚═════╝ 
-
-    Beyond Transformers. Beyond Prediction. Towards True Understanding.
-
-    
-📋 Configuration...
-
-🔧 Création du modèle ATLAS...
-
-╔══════════════════════════════════════════════════════════════╗
-║                    🌟 ATLAS INITIALISÉ 🌟                    ║
-╠══════════════════════════════════════════════════════════════╣
-║  Paramètres: 494,064,727                               
-║  Backbone: State-Space Model (Mamba-style)                  ║
-║  Layers: 24                                               
-║  Hidden Dim: 1024                                          
-║  Vocab Size: 50257                                        
-║  Max Seq Length: 4096                                   
-╠══════════════════════════════════════════════════════════════╣
-║  Modules actifs:                                             ║
-║  ✓ State-Space Backbone (O(n) complexity)                   ║
-║  ✓ Knowledge Graph Engine                                    ║
-║  ✓ Symbolic Reasoning (SymPy + Z3)                          ║
-║  ✓ Causal Reasoning (do-calculus)                           ║
-║  ✓ Energy-Based Generation                                   ║
-║  ✓ Certainty & Verification Engine                          ║
-║  ✓ Tree of Thoughts Reasoner                                ║
-║  ✓ MCTS Reasoner                                             ║
-╚══════════════════════════════════════════════════════════════╝
-        
-   Paramètres totaux: 494,064,727
-   Paramètres entraînables: 494,064,727
-
-📊 Génération des données d'entraînement...
-   10695 exemples générés
-
 ======================================================================
 🎓 DISTILLATION CROSS-ARCHITECTURE
 ======================================================================
-⚡ MODE TEST RAPIDE ACTIVÉ - Pour production, mettre FAST_TEST_MODE = False
+🔥 MODE PRODUCTION (OPTIMISÉ) - Offline Distillation
 
 📊 Configuration:
-   num_samples: 1000
-   num_epochs: 1
+   num_samples: 200000
+   num_epochs: 5
    batch_size: 4
-   save_path: ./atlas_distilled_test.pt
+   save_path: ./atlas_distilled_gpt_oss.pt
 ╔══════════════════════════════════════════════════════════════╗
 ║          🎓 DISTILLATION CROSS-ARCHITECTURE 🎓               ║
 ║     Transformer (Teacher) → State-Space Model (Student)      ║
 ╚══════════════════════════════════════════════════════════════╝
 
-📚 Tentative de chargement: mistralai/Mistral-7B-Instruct-v0.2
-   (Quantization 4-bit pour économiser VRAM...)
-INFO:accelerate.utils.modeling:We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
-Loading checkpoint shards: 100%
- 3/3 [00:13<00:00,  4.44s/it]
-✅ Teacher chargé avec succès!
-   Modèle: mistralai/Mistral-7B-Instruct-v0.2
-   Paramètres: 3,752,071,168
-   Hidden size: 4096
-   Vocab size: 32000
+✅ Données Offline trouvées: atlas_offline_data.pt
+   -> Passage direct à l'entraînement FAST (Teacher non chargé)
+   🔄 Chargement du Tokenizer seul (pour inférence future)...
 
-📊 Génération du dataset de distillation (1000 samples)...
-📊 Génération de 1,000 samples de distillation...
-   ✅ 1,000 samples générés
-⚡ Mode eager (sans compilation) pour démarrage rapide
+📦 Chargement du PackedDataset (Optimized)...
+📂 Chargement des données offline: atlas_offline_data.pt
+📦 Packing des séquences...
+✅ Packing terminé: 200000 samples -> 917 packed sequences
+   Efficacité théorique: 266.24%
+✅ torch.compile(mode='default') activé pour le student!
 ╔══════════════════════════════════════════════════════════════╗
 ║          🎓 DISTILLATION INTENSIVE GPT-OSS-20B 🎓            ║
 ║       Transformer (Teacher) -> State-Space (Student)         ║
 ╠══════════════════════════════════════════════════════════════╣
-║  Epochs: 1  |  Batch: 4  |  Accumulation: 8
-║  Effective batch: 32  |  Total steps: 250
+║  Epochs: 5  |  Batch: 4  |  Accumulation: 8
+║  Effective batch: 32  |  Total steps: 1,145
 ║  KD: 0.5  |  Hidden: 0.3  |  Task: 0.2
 ╚══════════════════════════════════════════════════════════════╝
-Epoch 1/1:  13%|█▎        | 33/250 [06:02<40:46, 11.27s/it, Step=4, Loss=182.1867, KD=243.3106] 
-Epoch 1/1:  20%|██        | 51/250 [09:26<37:10, 11.21s/it, Step=6, Loss=145.0296, KD=237.8619] 
-Epoch 1/1:  25%|██▍       | 62/250 [11:30<35:55, 11.47s/it, Step=7, Loss=140.0364, KD=239.6818] 
-Epoch 1/1:  32%|███▏      | 80/250 [14:50<30:52, 10.90s/it, Step=10, Loss=126.2550, KD=224.5612]
-Epoch 1/1:  37%|███▋      | 92/250 [17:04<29:34, 11.23s/it, Step=11, Loss=127.7922, KD=210.2607]
-Epoch 1/1:  40%|████      | 101/250 [18:45<27:48, 11.20s/it, Step=12, Loss=119.8384, KD=201.7009]
-Epoch 1/1:  63%|██████▎   | 157/250 [29:11<17:12, 11.11s/it, Step=19, Loss=108.0587, KD=186.8085]
-Epoch 1/1:  68%|██████▊   | 169/250 [31:24<15:05, 11.17s/it, Step=21, Loss=100.3099, KD=173.5769]
-Epoch 1/1:  80%|████████  | 200/250 [37:10<09:25, 11.32s/it, Step=25, Loss=95.7849, KD=166.1530] 
-Epoch 1/1:  85%|████████▍ | 212/250 [39:23<06:59, 11.05s/it, Step=26, Loss=95.1818, KD=180.7599] 
-Epoch 1/1:  86%|████████▋ | 216/250 [40:08<06:14, 11.02s/it, Step=27, Loss=94.2551, KD=169.6202] 
-Epoch 1/1:  96%|█████████▌| 239/250 [44:20<01:58, 10.78s/it, Step=29, Loss=92.6428, KD=171.0183] 
-Epoch 1/1:  96%|█████████▌| 240/250 [44:31<01:48, 10.80s/it, Step=30, Loss=89.3493, KD=170.1594]
-Epoch 1/1:  99%|█████████▉| 248/250 [46:00<00:22, 11.14s/it, Step=31, Loss=94.1019, KD=192.4647] 
-Epoch 1/1: 100%|██████████| 250/250 [46:23<00:00, 11.13s/it, Step=31, Loss=94.1019, KD=192.4647] 
+Epoch 1/5: 100%|██████████| 229/229 [04:12<00:00,  1.10s/it, Step=28, Loss=37.9040, KD=74.2311]  
 
 📊 Epoch 1 Summary:
-   KD Loss: 273.7644
-   Hidden Loss: 0.4812
-   Task Loss: 67.5797
-   Total Loss: 150.5425
-   💾 Saved best model (loss=150.5425)
+   KD Loss: 268.7012
+   Hidden Loss: 0.3049
+   Task Loss: 110.7607
+   Total Loss: 156.5942
+   💾 Saved best model (loss=156.5942)
+Epoch 2/5: 100%|██████████| 229/229 [04:09<00:00,  1.09s/it, Step=57, Loss=13.8674, KD=25.8145]
+
+📊 Epoch 2 Summary:
+   KD Loss: 32.1982
+   Hidden Loss: 0.0493
+   Task Loss: 8.5587
+   Total Loss: 17.8256
+   💾 Saved best model (loss=17.8256)
+Epoch 3/5: 100%|██████████| 229/229 [04:11<00:00,  1.10s/it, Step=85, Loss=3.3052, KD=6.2917] 
+
+📊 Epoch 3 Summary:
+   KD Loss: 11.5805
+   Hidden Loss: 0.0159
+   Task Loss: 5.2153
+   Total Loss: 6.8381
+   💾 Saved best model (loss=6.8381)
+Epoch 4/5: 100%|██████████| 229/229 [04:10<00:00,  1.09s/it, Step=114, Loss=1.2062, KD=1.1783]
+
+📊 Epoch 4 Summary:
+   KD Loss: 2.6416
+   Hidden Loss: 0.0088
+   Task Loss: 2.7185
+   Total Loss: 1.8671
+   💾 Saved best model (loss=1.8671)
+Epoch 5/5: 100%|██████████| 229/229 [04:11<00:00,  1.10s/it, Step=143, Loss=1.0425, KD=1.5719]
+
+📊 Epoch 5 Summary:
+   KD Loss: 1.5752
+   Hidden Loss: 0.0071
+   Task Loss: 1.6677
+   Total Loss: 1.1233
+   💾 Saved best model (loss=1.1233)
 
 ✅ Distillation terminée!
-   Best loss: 150.5425
-   Model saved to: ./atlas_distilled_test.pt
+   Best loss: 1.1233
+   Model saved to: ./atlas_distilled_gpt_oss.pt
    ✅ Utilisation du tokenizer HuggingFace!
 
 ======================================================================
 ✅ DISTILLATION TERMINÉE!
-   Modèle sauvegardé: ./atlas_distilled_test.pt
+   Modèle sauvegardé: ./atlas_distilled_gpt_oss.pt
 ======================================================================
 
 🧹 Nettoyage mémoire GPU...
-   ✓ Teacher supprimé
    ✓ Pipeline supprimé
    ✓ Distiller supprimé
-   ✓ Cache CUDA vidé - 146.46 GB libres
+   ✓ Cache CUDA vidé - 81.49 GB libres
 ✅ Mémoire GPU nettoyée!
 
 💉 Injection de connaissances...
@@ -129,4 +95,3 @@ Epoch 1/1: 100%|██████████| 250/250 [46:23<00:00, 11.13s/it,
 ╔══════════════════════════════════════════════════════════════╗
 ║              🚀 DÉMARRAGE ENTRAÎNEMENT ATLAS 🚀              ║
 ╚══════════════════════════════════════════════════════════════╝
-Epoch 1/1:   0%|          | 2/2674 [06:34<146:30:35, 197.39s/it]
