@@ -1,4 +1,60 @@
 # ═══════════════════════════════════════════════════════════════════════════════
+# 🚨 CRITICAL FIX: DISABLE TORCH DYNAMO BEFORE ANY IMPORTS
+# This MUST be at the very top of the file to prevent MockModule errors in Kaggle
+# ═══════════════════════════════════════════════════════════════════════════════
+import os
+import sys
+
+# Method 1: Environment variables (must be set before torch import)
+os.environ["TORCH_COMPILE_DISABLE"] = "1"
+os.environ["TORCHDYNAMO_DISABLE"] = "1" 
+os.environ["TORCH_DYNAMO_DISABLE"] = "1"
+os.environ["PYTORCH_DISABLE_DYNAMO"] = "1"
+
+# Method 2: Monkey-patch torch._dynamo with a minimal stub AFTER torch imports
+# This is deferred to after torch is imported to avoid interfering with other modules
+
+def _patch_dynamo_after_torch():
+    """Patch torch._dynamo after torch is imported to prevent MockModule errors"""
+    try:
+        import torch
+        # Create a minimal fake dynamo module
+        class MinimalDynamo:
+            @staticmethod
+            def disable(fn=None, recursive=True):
+                if fn is None:
+                    return lambda f: f
+                return fn
+            @staticmethod
+            def optimize(*args, **kwargs):
+                return lambda f: f
+            @staticmethod
+            def run(*args, **kwargs):
+                pass
+            @staticmethod
+            def reset():
+                pass
+            @staticmethod
+            def is_compiling():
+                return False
+            class config:
+                suppress_errors = True
+                verbose = False
+                
+        # Only patch if dynamo is broken or not available
+        try:
+            # Test if dynamo works
+            from torch._dynamo import config as dynamo_config
+        except Exception:
+            # Dynamo is broken, install our minimal version
+            sys.modules['torch._dynamo'] = MinimalDynamo()
+            sys.modules['torch._dynamo.config'] = MinimalDynamo.config
+    except ImportError:
+        pass  # torch not yet available
+
+print("✅ TORCH DYNAMO DÉSACTIVÉ - Protection contre MockModule activée")
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # ██████╗ ██████╗  ██████╗      ██╗███████╗ ██████╗████████╗     █████╗ ████████╗██╗      █████╗ ███████╗
 # ██╔══██╗██╔══██╗██╔═══██╗     ██║██╔════╝██╔════╝╚══██╔══╝    ██╔══██╗╚══██╔══╝██║     ██╔══██╗██╔════╝
 # ██████╔╝██████╔╝██║   ██║     ██║█████╗  ██║        ██║       ███████║   ██║   ██║     ███████║███████╗
@@ -101,6 +157,9 @@ install_atlas_dependencies()
 # ═══════════════════════════════════════════════════════════════════════════════
 
 import torch
+# Apply dynamo patch immediately after torch import
+_patch_dynamo_after_torch()
+
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
@@ -164,9 +223,11 @@ try:
     from mamba_ssm.ops.selective_scan_interface import selective_scan_fn
     MAMBA_KERNEL_AVAILABLE = True
     print("🚀 KERNEL MAMBA OPTIMISÉ DÉTECTÉ: Le scan sera 100x plus rapide!")
-except ImportError:
+except (ImportError, TypeError, Exception) as e:
+    # TypeError can occur due to PyTorch dynamo/transformers version incompatibility
+    # when mamba_ssm imports transformers.generation which triggers torch._dynamo
     MAMBA_KERNEL_AVAILABLE = False
-    print("⚠️ KERNEL MAMBA NON DÉTECTÉ: Utilisation du mode lent Python. Installez mamba-ssm pour accélérer.")
+    print(f"⚠️ KERNEL MAMBA NON DÉTECTÉ: Utilisation du mode lent Python. ({type(e).__name__})")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # PARTIE 2.5: TOKENIZER AVEC SUPPORT .to()
@@ -4357,10 +4418,10 @@ class FullDistillationPipeline:
         # Scheduler
         self.scheduler = None
         
-        # Loss weights
-        self.kd_weight = 0.5
-        self.hidden_weight = 0.3
-        self.task_weight = 0.2
+        # Loss weights - CORRECTED: Task loss is primary for language generation
+        self.kd_weight = 0.3    # KD guides but doesn't dominate
+        self.hidden_weight = 0.2
+        self.task_weight = 0.5  # Primary: actual next-token prediction
     
     def distill_step(self, batch: Dict[str, torch.Tensor]) -> Dict[str, float]:
         """Un pas de distillation avec mixed precision (Supporte Offline & Online)"""
@@ -4387,12 +4448,13 @@ class FullDistillationPipeline:
                 B, L, K = teacher_topk_vals.shape
                 vocab_size = self.config.vocab_size
                 
-                # Crée un tenseur vide init à -100 (très faible prob)
-                teacher_logits = torch.full((B, L, vocab_size), -100.0, device=DEVICE)
+                # FIXED: Use -inf for proper softmax behavior (non-top-k become ~0 probability)
+                # Previous -100 was causing distribution collapse
+                teacher_logits = torch.full((B, L, vocab_size), float('-inf'), device=DEVICE, dtype=teacher_topk_vals.dtype)
                 
                 # Scatter les valeurs Top-K aux bons indices
                 # (B, L, K) -> (B, L, V)
-                teacher_logits.scatter_(2, teacher_topk_indices, teacher_topk_vals)
+                teacher_logits.scatter_(2, teacher_topk_indices, teacher_topk_vals.to(teacher_logits.dtype))
                 
             else:
                 # 2. ONLINE: Exécute le Teacher (Lent et lourd en VRAM)
@@ -4432,14 +4494,18 @@ class FullDistillationPipeline:
                 student_hidden, teacher_hidden, self.hidden_projector
             )
             
-            # 3. Task Loss (next token prediction)
-            labels = input_ids.clone()
-            labels[:, :-1] = input_ids[:, 1:]
-            labels[:, -1] = -100
+            # 3. Task Loss (next token prediction) - FIXED: Standard autoregressive shift
+            # logits[i] should predict token[i+1], so we shift properly
+            shift_logits = student_logits[:, :-1, :].contiguous()
+            shift_labels = input_ids[:, 1:].contiguous()
+            
+            # Apply attention mask to ignore padding tokens (set to -100)
+            # Token 0 is typically PAD token
+            shift_labels = shift_labels.masked_fill(shift_labels == 0, -100)
             
             task_loss = F.cross_entropy(
-                student_logits.view(-1, student_logits.size(-1)),
-                labels.view(-1),
+                shift_logits.view(-1, shift_logits.size(-1)),
+                shift_labels.view(-1),
                 ignore_index=-100
             )
             
@@ -4653,6 +4719,11 @@ class CrossArchitectureDistillation:
                     if self.tokenizer.pad_token is None:
                         self.tokenizer.pad_token = self.tokenizer.eos_token
                     
+                    # CRITICAL FIX: Force RIGHT padding!
+                    # Mistral uses LEFT padding by default, putting real tokens at END
+                    # This breaks slicing which expects tokens at BEGINNING
+                    self.tokenizer.padding_side = 'right'
+                    
                     if total_vram > 30:
                         print("   🚀 VRAM > 30GB -> Mode FAST (BFloat16) activé!")
                         self.teacher = AutoModelForCausalLM.from_pretrained(
@@ -4744,6 +4815,8 @@ class CrossArchitectureDistillation:
                     self.tokenizer = AutoTokenizer.from_pretrained(model_to_use)
                     if self.tokenizer.pad_token is None:
                         self.tokenizer.pad_token = self.tokenizer.eos_token
+                    # CRITICAL FIX: Force RIGHT padding!
+                    self.tokenizer.padding_side = 'right'
                 except Exception as e:
                     print(f"   ⚠️ Tokenizer load failed ({e}), finding DemoTokenizer...")
                     self.tokenizer = DemoTokenizer() 
@@ -5116,8 +5189,8 @@ def main():
         n_layers=24,
         d_state=128,
         
-        # Vocabulary
-        vocab_size=50257,
+        # Vocabulary - MUST MATCH TOKENIZER (Mistral = 32000)
+        vocab_size=32000,
         max_seq_len=4096,
         
         # Training
@@ -5152,27 +5225,31 @@ def main():
     
     print(f"   {len(train_data)} exemples générés")
     
-    # ═══ TOKENIZER (simulation) ═══
-    class SimpleTokenizer:
-        def __init__(self, vocab_size=50257):
-            self.vocab_size = vocab_size
-            self.pad_token_id = 0
-            
-        def __call__(self, text, max_length=2048, **kwargs):
-            # Hash-based tokenization (placeholder)
-            words = text.split()
-            tokens = [hash(w) % self.vocab_size for w in words][:max_length]
-            padding = [self.pad_token_id] * (max_length - len(tokens))
-            
-            return {
-                'input_ids': torch.tensor([tokens + padding]),
-                'attention_mask': torch.tensor([[1]*len(tokens) + [0]*len(padding)])
-            }
+    # ═══ TOKENIZER UTILS ═══
+    # Helper to wrap tokenizer output for .to(device) support
+    class TokenizerOutput:
+        def __init__(self, data):
+            self.data = data
+        def to(self, device):
+            return TokenizerOutput({k: v.to(device) if hasattr(v, 'to') else v for k, v in self.data.items()})
+        def __getitem__(self, key): return self.data[key]
         
-        def decode(self, ids, skip_special_tokens=True):
-            return "[Decoded text]"
-    
-    tokenizer = SimpleTokenizer(config.vocab_size)
+    # ═══ TOKENIZER (REAL) ═══
+    print("🔤 Chargement du tokenizer Mistral...")
+    from transformers import AutoTokenizer
+    try:
+        tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-7B-Instruct-v0.2")
+        if tokenizer.pad_token is None:
+            tokenizer.pad_token = tokenizer.eos_token
+        print("✅ Tokenizer Mistral chargé avec succès")
+    except Exception as e:
+        print(f"⚠️ Erreur chargement Mistral ({e}), fallback sur tokenizer par défaut (GPT2)")
+        tokenizer = AutoTokenizer.from_pretrained("gpt2")
+        tokenizer.pad_token = tokenizer.eos_token
+        
+    # Update config vocab size to match tokenizer
+    config.vocab_size = len(tokenizer)
+    print(f"ℹ️ Vocab size ajusté à: {config.vocab_size}")
     
     # ═══ DATASET ═══
     train_dataset = ATLASDataset(train_data, tokenizer, max_length=config.max_seq_len)
@@ -5224,7 +5301,17 @@ def main():
         
         try:
             checkpoint = torch.load(save_path, map_location=DEVICE)
-            model.load_state_dict(checkpoint['model_state_dict'])
+            
+            # Fix pour torch.compile(): enlever le préfixe "_orig_mod."
+            state_dict = checkpoint['model_state_dict']
+            cleaned_state_dict = {}
+            for k, v in state_dict.items():
+                if k.startswith("_orig_mod."):
+                    cleaned_state_dict[k[10:]] = v  # Enlever "_orig_mod."
+                else:
+                    cleaned_state_dict[k] = v
+            
+            model.load_state_dict(cleaned_state_dict, strict=False)
             print("   ✅ Poids chargés avec succès")
             
             # Tentative de charger le tokenizer approprié
