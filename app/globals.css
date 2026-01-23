@@ -11,10 +11,12 @@
   --spacing-input-area: 134px;
 
   @keyframes loading-dots {
+
     0%,
     100% {
       opacity: 0;
     }
+
     50% {
       opacity: 1;
     }
@@ -61,13 +63,9 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  --spacing-scroll-area: calc(
-    -1 * (var(--spacing-input-area) + var(--spacing-app-header))
-  );
+  --spacing-scroll-area: calc(-1 * (var(--spacing-input-area) + var(--spacing-app-header)));
   --spacing-scroll-anchor-offset: 140px;
-  --spacing-scroll-anchor: calc(
-    var(--spacing-scroll-area) - var(--spacing-scroll-anchor-offset) + 100dvh
-  );
+  --spacing-scroll-anchor: calc(var(--spacing-scroll-area) - var(--spacing-scroll-anchor-offset) + 100dvh);
 }
 
 :root {
@@ -107,7 +105,7 @@
 }
 
 .dark {
-  --background: oklch(21.34% 0 0);
+  --background: oklch(10% 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(21.34% 0 0);
   --card-foreground: oklch(0.985 0 0);
@@ -131,7 +129,7 @@
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(19% 0 0);
+  --sidebar: oklch(10% 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(26.45% 0 0);
   --sidebar-primary-foreground: oklch(0.985 0 0);
@@ -145,6 +143,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -157,7 +156,7 @@ code {
 }
 
 /* sonner toast */
-[data-sonner-toaster] > li {
+[data-sonner-toaster]>li {
   width: 100%;
 }
 
@@ -206,4 +205,3 @@ code {
 .dark *::-webkit-scrollbar-thumb:hover {
   background-color: oklch(0.442 0.017 285.786);
 }
-
