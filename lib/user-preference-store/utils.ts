@@ -10,7 +10,7 @@ export type UserPreferences = {
 }
 
 export const defaultPreferences: UserPreferences = {
-  layout: "fullscreen",
+  layout: "sidebar",
   promptSuggestions: true,
   showToolInvocations: true,
   showConversationPreviews: true,
@@ -29,10 +29,10 @@ type ApiUserPreferences = {
 
 // Helper functions to convert between API format (snake_case) and frontend format (camelCase)
 export function convertFromApiFormat(apiData: ApiUserPreferences): UserPreferences {
-  const layout = apiData.layout === "sidebar" || apiData.layout === "fullscreen" 
-    ? apiData.layout 
+  const layout = apiData.layout === "sidebar" || apiData.layout === "fullscreen"
+    ? apiData.layout
     : "fullscreen"
-  
+
   return {
     layout,
     promptSuggestions: apiData.prompt_suggestions ?? true,

@@ -34,6 +34,11 @@ const BudgetErrorDialog = dynamic(
   { ssr: false }
 )
 
+const FeatureUnavailableDialog = dynamic(
+  () => import("./feature-unavailable-dialog").then((mod) => mod.FeatureUnavailableDialog),
+  { ssr: false }
+)
+
 export function Chat() {
   const { chatId } = useChatSession()
   const {
@@ -75,6 +80,7 @@ export function Chat() {
 
   // State to pass between hooks
   const [hasDialogAuth, setHasDialogAuth] = useState(false)
+  const [showFeatureUnavailable, setShowFeatureUnavailable] = useState(false)
   const isAuthenticated = useMemo(() => !!user?.id, [user?.id])
   const systemPrompt = useMemo(
     () => user?.system_prompt || SYSTEM_PROMPT_DEFAULT,
@@ -98,7 +104,7 @@ export function Chat() {
     try {
       const { checkRateLimits } = await import("@/lib/api")
       const { REMAINING_QUERY_ALERT_THRESHOLD } = await import("@/lib/config")
-      
+
       const rateData = await checkRateLimits(uid, isAuthenticated)
 
       if (rateData.remaining === 0 && !isAuthenticated) {
@@ -109,9 +115,8 @@ export function Chat() {
       if (rateData.remaining === REMAINING_QUERY_ALERT_THRESHOLD) {
         const { toast } = await import("@/components/ui/toast")
         toast({
-          title: `Only ${rateData.remaining} quer${
-            rateData.remaining === 1 ? "y" : "ies"
-          } remaining today.`,
+          title: `Only ${rateData.remaining} quer${rateData.remaining === 1 ? "y" : "ies"
+            } remaining today.`,
           status: "info",
         })
       }
@@ -119,9 +124,8 @@ export function Chat() {
       if (rateData.remainingPro === REMAINING_QUERY_ALERT_THRESHOLD) {
         const { toast } = await import("@/components/ui/toast")
         toast({
-          title: `Only ${rateData.remainingPro} pro quer${
-            rateData.remainingPro === 1 ? "y" : "ies"
-          } remaining today.`,
+          title: `Only ${rateData.remainingPro} pro quer${rateData.remainingPro === 1 ? "y" : "ies"
+            } remaining today.`,
           status: "info",
         })
       }
@@ -324,7 +328,11 @@ export function Chat() {
       )}
     >
       <DialogAuth open={hasDialogAuth} setOpen={setHasDialogAuth} />
-      
+      <FeatureUnavailableDialog
+        open={showFeatureUnavailable}
+        onOpenChange={setShowFeatureUnavailable}
+      />
+
       {budgetError && (
         <BudgetErrorDialog
           open={budgetError.open}
@@ -373,6 +381,20 @@ export function Chat() {
           },
         }}
       >
+        {/* Overlay to intercept clicks and show feature unavailable popup */}
+        <div
+          className="absolute inset-0 z-[100] cursor-pointer"
+          onClick={() => setShowFeatureUnavailable(true)}
+          onKeyDown={(e) => {
+            if (e.key !== "Tab") {
+              e.preventDefault()
+              setShowFeatureUnavailable(true)
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label="Feature not available"
+        />
         <ChatInput {...chatInputProps} />
       </motion.div>
 

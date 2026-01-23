@@ -52,3 +52,7 @@ bun.lockb
 bun.lock
 
 /.cursor
+
+.venv
+__pycache__
+/scripts
