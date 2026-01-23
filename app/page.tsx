@@ -1,6 +1,6 @@
 "use client"
 
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion"
+import { motion, useMotionValue, useSpring, useTransform, useMotionTemplate } from "framer-motion"
 import { useRouter } from "next/navigation"
 import {
   Sparkle,
@@ -54,7 +54,7 @@ const universes = [
     id: "webtoon",
     name: "Zenchi Toons",
     tagline: "Visual Stories",
-    description: "Immersive vertical scrolling comics from top creators.",
+    description: "Immersive comics where creators keep 100% of coin revenue.",
     icon: MonitorPlay,
     color: "emerald",
     gradient: "from-emerald-500/20 via-emerald-500/5 to-transparent",
@@ -91,11 +91,22 @@ function Counter({ value }: { value: string }) {
 
 export default function LandingPage() {
   const router = useRouter()
-  const [hoveredUniverse, setHoveredUniverse] = useState<string | null>(null)
+  const [isNavigating, setIsNavigating] = useState(false)
+  const [selectedRoute, setSelectedRoute] = useState<string | null>(null)
 
   // Mouse position effect for subtle background movement
   const mouseX = useMotionValue(0)
   const mouseY = useMotionValue(0)
+
+  // Smooth mouse for background movement
+  const springX = useSpring(mouseX, { stiffness: 50, damping: 20 })
+  const springY = useSpring(mouseY, { stiffness: 50, damping: 20 })
+
+  const bgX = useTransform(springX, [0, typeof window !== 'undefined' ? window.innerWidth : 1000], ["-5%", "5%"])
+  const bgY = useTransform(springY, [0, typeof window !== 'undefined' ? window.innerHeight : 1000], ["-5%", "5%"])
+
+  // Mask for grid
+  const maskImage = useMotionTemplate`radial-gradient(600px circle at ${mouseX}px ${mouseY}px, black, transparent)`
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -106,11 +117,15 @@ export default function LandingPage() {
     return () => window.removeEventListener("mousemove", handleMouseMove)
   }, [mouseX, mouseY])
 
-  const springX = useSpring(mouseX, { stiffness: 50, damping: 20 })
-  const springY = useSpring(mouseY, { stiffness: 50, damping: 20 })
+  const handleNavigation = (route: string) => {
+    setSelectedRoute(route)
+    setIsNavigating(true)
 
-  const bgX = useTransform(springX, [0, typeof window !== 'undefined' ? window.innerWidth : 1000], ["-5%", "5%"])
-  const bgY = useTransform(springY, [0, typeof window !== 'undefined' ? window.innerHeight : 1000], ["-5%", "5%"])
+    // Delay routing for animation
+    setTimeout(() => {
+      router.push(route)
+    }, 800)
+  }
 
   return (
     <div className="relative min-h-screen w-full bg-black text-white selection:bg-white/20 overflow-hidden font-sans flex flex-col">
@@ -120,12 +135,17 @@ export default function LandingPage() {
         className="fixed inset-[-10%] z-0 pointer-events-none opacity-40 mix-blend-screen"
         style={{ x: bgX, y: bgY }}
       >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(76,29,149,0.15),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(76,29,149,0.1),transparent_50%)]" />
         <div className="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150" />
       </motion.div>
 
-      {/* Grid Pattern Overlay */}
-      <div className="fixed inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
+      {/* Interactive Grid Overlay */}
+      <motion.div
+        className="fixed inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"
+        style={{ maskImage }}
+      />
+      {/* Fallback Grid (always visible but dim) */}
+      <div className="fixed inset-0 z-0 bg-[linear-gradient(to_right,#80808006_1px,transparent_1px),linear-gradient(to_bottom,#80808006_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
 
       {/* Header */}
       <header className="relative z-50 w-full p-6 flex items-center justify-between max-w-7xl mx-auto">
@@ -148,40 +168,33 @@ export default function LandingPage() {
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 flex-1 flex flex-col justify-center items-center px-4 py-12 max-w-7xl mx-auto w-full">
+      <motion.main
+        className="relative z-10 flex-1 flex flex-col justify-center items-center px-4 py-12 max-w-7xl mx-auto w-full"
+        animate={isNavigating ? { scale: 1.1, opacity: 0, filter: "blur(10px)" } : { scale: 1, opacity: 1, filter: "blur(0px)" }}
+        transition={{ duration: 0.8, ease: "easeInOut" }}
+      >
 
         {/* Hero Section */}
-        <div className="text-center mb-20 max-w-3xl mx-auto space-y-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-white/70 backdrop-blur-md"
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            System Operational
-          </motion.div>
+        <div className="text-center mb-20 max-w-4xl mx-auto space-y-8">
 
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-5xl md:text-7xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white via-white/90 to-white/50"
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="text-6xl md:text-8xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white via-white/90 to-white/40"
           >
             One Account. <br />
-            <span className="text-white/40">Infinite Possibilities.</span>
+            <span className="text-white/30">Infinite Possibilities.</span>
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg text-white/50 max-w-xl mx-auto leading-relaxed"
+            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+            className="text-xl md:text-2xl text-white/60 max-w-2xl mx-auto leading-relaxed font-light"
           >
-            Zenchi unifies your digital existence. Navigate seamlessly between productivity, creativity, and entertainment in a single, immersive multiverse.
+            The ultimate ecosystem for creativity and entertainment. <br className="hidden md:block" />
+            <span className="text-emerald-400/80">Creators keep 100% of coin revenue.</span> Supporting art, directly.
           </motion.p>
         </div>
 
@@ -190,15 +203,17 @@ export default function LandingPage() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.3 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-20 w-full max-w-3xl"
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-24 w-full max-w-3xl"
         >
           {stats.map((stat) => (
-            <div key={stat.id} className="flex flex-col items-center justify-center p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors duration-300">
-              <stat.icon className="text-white/40 mb-2" size={24} weight="duotone" />
-              <div className="text-3xl font-bold tracking-tight text-white">
+            <div key={stat.id} className="flex flex-col items-center justify-center p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors duration-300 group">
+              <div className="p-3 mb-3 rounded-full bg-white/5 group-hover:scale-110 transition-transform duration-300">
+                <stat.icon className="text-white/60" size={24} weight="duotone" />
+              </div>
+              <div className="text-3xl font-bold tracking-tight text-white mb-1">
                 <Counter value={stat.value} />
               </div>
-              <div className="text-xs font-medium text-white/40 uppercase tracking-widest mt-1">
+              <div className="text-xs font-medium text-white/40 uppercase tracking-widest">
                 {stat.label}
               </div>
             </div>
@@ -207,10 +222,15 @@ export default function LandingPage() {
 
         {/* Universe Selector */}
         <div className="w-full">
-          <div className="flex items-center gap-4 mb-8">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="flex items-center gap-4 mb-8"
+          >
             <h2 className="text-xl font-semibold text-white/90">Select Universe</h2>
             <div className="h-px bg-white/10 flex-1" />
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {universes.map((universe, index) => (
@@ -218,14 +238,14 @@ export default function LandingPage() {
                 key={universe.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
-                onClick={() => router.push(universe.route)}
-                onMouseEnter={() => setHoveredUniverse(universe.id)}
-                onMouseLeave={() => setHoveredUniverse(null)}
+                transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
+                onClick={() => handleNavigation(universe.route)}
+                disabled={isNavigating}
                 className={cn(
                   "group relative h-80 rounded-3xl p-6 text-left flex flex-col justify-between overflow-hidden transition-all duration-500",
-                  "border border-white/10 bg-black/40 hover:shadow-2xl hover:-translate-y-1",
-                  universe.borderHover
+                  "border border-white/10 bg-black/40 hover:shadow-2xl hover:-translate-y-2",
+                  universe.borderHover,
+                  isNavigating && selectedRoute !== universe.route && "opacity-20 scale-95"
                 )}
               >
                 {/* Background Gradient on Hover */}
@@ -272,10 +292,10 @@ export default function LandingPage() {
           </div>
         </div>
 
-      </main>
+      </motion.main>
 
       {/* Footer */}
-      <footer className="relative z-10 w-full py-8 text-center text-white/20 text-xs">
+      <footer className="relative z-10 w-full py-8 text-center text-white/20 text-xs mt-12">
         <div className="max-w-7xl mx-auto px-6 border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p>© 2026 Zenchi Project. Evolution Protocol v4.0</p>
           <div className="flex gap-6">
