@@ -53,7 +53,7 @@ export function SettingsContent({
   return (
     <div
       className={cn(
-        "bg-card text-card-foreground flex w-full flex-col overflow-y-auto",
+        "bg-transparent text-card-foreground flex w-full flex-col overflow-y-auto",
         isDrawer ? "p-0 pb-16" : "py-0"
       )}
     >

@@ -3,6 +3,7 @@ import { getProviderIcon } from "@/lib/providers"
 import ProviderIcon from "@/components/common/provider-icon"
 import { Badge } from "@/components/ui/badge"
 import { BrainIcon, GlobeIcon, ImageIcon, WrenchIcon } from "@phosphor-icons/react"
+import { getRequestMultiplierFromPricing } from "@/lib/request-units"
 
 type SubMenuProps = {
   hoveredModelData: ModelConfig
@@ -13,6 +14,12 @@ export function SubMenu({ hoveredModelData }: SubMenuProps) {
   const hasReasoning = Boolean(
     (hoveredModelData as any).reasoning ?? hoveredModelData.reasoningText
   )
+
+  // Calculate the multiplier based on input/output costs
+  const multiplier = getRequestMultiplierFromPricing({
+    inputCostPerMillion: hoveredModelData.inputCost,
+    outputCostPerMillion: hoveredModelData.outputCost,
+  })
 
   return (
     <div className="bg-popover border-border w-[260px] rounded-md border p-2.5 shadow-lg backdrop-blur-xl">
@@ -118,6 +125,11 @@ export function SubMenu({ hoveredModelData }: SubMenuProps) {
             <span className="text-muted-foreground truncate text-xs font-mono bg-accent/50 px-1.5 py-0.5 rounded">
               {String(hoveredModelData.id)}
             </span>
+          </div>
+
+          <div className="flex items-center justify-between gap-2 text-xs pt-1.5 border-t border-border">
+            <span className="text-muted-foreground">Request Multiplier</span>
+            <span className="text-primary font-semibold">x{multiplier}</span>
           </div>
 
           {/* API-only: no external links section */}

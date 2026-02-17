@@ -67,7 +67,7 @@ export function SettingsTrigger({ onOpenChange }: SettingsTriggerProps) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="bg-card/95 border-border/70 flex h-[80%] min-h-[480px] w-full flex-col gap-0 overflow-hidden rounded-2xl p-0 shadow-xl backdrop-blur-xl sm:max-w-[768px]">
+      <DialogContent className="bg-sidebar/95 border-border/70 flex h-[80%] min-h-[480px] w-full flex-col gap-0 overflow-hidden rounded-2xl p-0 shadow-xl backdrop-blur-xl sm:max-w-[768px]">
         <DialogHeader className="border-border/70 border-b px-6 py-5">
           <DialogTitle>Settings</DialogTitle>
         </DialogHeader>
