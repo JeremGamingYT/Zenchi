@@ -1,34 +1,32 @@
 "use client"
 
 import { groupChatsByDate } from "@/app/components/history/utils"
-import { useBreakpoint } from "@/app/hooks/use-breakpoint"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { ZolaIcon } from "@/components/icons/zola"
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  useSidebar,
 } from "@/components/ui/sidebar"
 import { useChats } from "@/lib/chat-store/chats/provider"
+import { APP_NAME } from "@/lib/config"
 import {
   ChatTeardropText,
   GithubLogo,
   MagnifyingGlass,
   NotePencilIcon,
-  Sparkle,
-  X,
 } from "@phosphor-icons/react"
 import { Pin } from "lucide-react"
+import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { useMemo } from "react"
 import { HistoryTrigger } from "../../history/history-trigger"
+import { HeaderSidebarTrigger } from "../header-sidebar-trigger"
 import { SidebarList } from "./sidebar-list"
 import { SidebarProject } from "./sidebar-project"
 
 export function AppSidebar() {
-  const isMobile = useBreakpoint(768)
-  const { setOpenMobile } = useSidebar()
   const { chats, pinnedChats, isLoading } = useChats()
   const params = useParams<{ chatId: string }>()
   const currentChatId = params.chatId
@@ -44,21 +42,18 @@ export function AppSidebar() {
     <Sidebar
       collapsible="offcanvas"
       variant="sidebar"
-      className="border-border/40 border-r bg-transparent"
+      className="bg-transparent"
     >
-      <SidebarHeader className="h-14 pl-3">
-        <div className="flex justify-between">
-          {isMobile ? (
-            <button
-              type="button"
-              onClick={() => setOpenMobile(false)}
-              className="text-muted-foreground hover:text-foreground hover:bg-muted inline-flex size-9 items-center justify-center rounded-md bg-transparent transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-            >
-              <X size={24} />
-            </button>
-          ) : (
-            <div className="h-full" />
-          )}
+      <SidebarHeader className="h-14 px-3">
+        <div className="flex items-center justify-between gap-2">
+          <Link
+            href="/chat"
+            className="pointer-events-auto inline-flex items-center text-base font-medium tracking-tight"
+          >
+            <ZolaIcon className="mr-1 size-4" />
+            {APP_NAME}
+          </Link>
+          <HeaderSidebarTrigger />
         </div>
       </SidebarHeader>
       <SidebarContent className="border-border/40 border-t">
@@ -133,24 +128,23 @@ export function AppSidebar() {
         </ScrollArea>
       </SidebarContent>
       <SidebarFooter className="border-border/40 mb-2 border-t p-3">
-        <a
-          href="https://github.com/SilkePilon/Zenchi"
-          className="hover:bg-muted flex items-center gap-2 rounded-md p-2"
-          target="_blank"
-          aria-label="Star the repo on GitHub"
+        <Link
+          href="/pricing"
+          className="hover:bg-sidebar-accent/80 border-sidebar-border/60 bg-sidebar-accent/40 flex items-center gap-2 rounded-xl border p-2.5 transition-colors"
+          aria-label="Open pricing"
         >
-          <div className="rounded-full border p-1">
+          <div className="rounded-full border border-current/20 p-1">
             <GithubLogo className="size-4" />
           </div>
           <div className="flex flex-col">
             <div className="text-sidebar-foreground text-sm font-medium">
-              Zenchi is open source
+              Current plan
             </div>
             <div className="text-sidebar-foreground/70 text-xs">
-              Star the repo on GitHub!
+              View subscription & limits
             </div>
           </div>
-        </a>
+        </Link>
       </SidebarFooter>
     </Sidebar>
   )

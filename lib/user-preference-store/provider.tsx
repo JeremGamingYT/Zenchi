@@ -128,9 +128,8 @@ export function UserPreferencesProvider({
         try {
           return await fetchUserPreferences()
         } catch (error) {
-          console.error(
-            "Failed to fetch user preferences, falling back to localStorage:",
-            error
+          console.warn(
+            "Failed to fetch user preferences, falling back to localStorage"
           )
           return getLocalStoragePreferences()
         }

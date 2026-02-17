@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select"
 import { GlobeSimple, HardDrive, CheckCircle, XCircle, SpinnerGap } from "@phosphor-icons/react"
 
-const OLLAMA_STORAGE_KEY = "zenchi-ollama-settings"
+const OLLAMA_STORAGE_KEY = "ziro-ollama-settings"
 
 type ConnectionType = "local" | "remote"
 

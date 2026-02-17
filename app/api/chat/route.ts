@@ -65,7 +65,7 @@ export async function POST(req: Request) {
     })
 
     if (supabase) {
-      await incrementMessageCount({ supabase, userId })
+      await incrementMessageCount({ supabase, userId, model })
     }
 
     const userMessage = messages[messages.length - 1]

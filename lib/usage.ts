@@ -1,9 +1,14 @@
 import { UsageLimitError } from "@/lib/api"
 import {
-  AUTH_DAILY_MESSAGE_LIMIT,
   DAILY_LIMIT_PRO_MODELS,
   NON_AUTH_DAILY_MESSAGE_LIMIT,
 } from "@/lib/config"
+import { getAllModels } from "@/lib/models"
+import {
+  FREE_PLAN_DAILY_REQUEST_UNITS,
+  getRequestMultiplierFromPricing,
+  PRO_PLAN_DAILY_REQUEST_UNITS,
+} from "@/lib/request-units"
 import { SupabaseClient } from "@supabase/supabase-js"
 
 /**
@@ -32,12 +37,13 @@ export async function checkUsage(supabase: SupabaseClient, userId: string) {
     throw new Error("User record not found for id: " + userId)
   }
 
-  // Decide which daily limit to use.
   const isAnonymous = userData.anonymous
-  // (Assuming these are imported from your config)
+  const isPremium = Boolean(userData.premium)
   const dailyLimit = isAnonymous
     ? NON_AUTH_DAILY_MESSAGE_LIMIT
-    : AUTH_DAILY_MESSAGE_LIMIT
+    : isPremium
+      ? PRO_PLAN_DAILY_REQUEST_UNITS
+      : FREE_PLAN_DAILY_REQUEST_UNITS
 
   // Reset the daily counter if the day has changed (using UTC).
   const now = new Date()
@@ -119,6 +125,60 @@ export async function incrementUsage(
   if (updateError) {
     throw new Error("Failed to update usage data: " + updateError.message)
   }
+}
+
+async function incrementUsageUnits(
+  supabase: SupabaseClient,
+  userId: string,
+  units: number
+): Promise<void> {
+  const { data: userData, error: userDataError } = await supabase
+    .from("users")
+    .select("message_count, daily_message_count")
+    .eq("id", userId)
+    .maybeSingle()
+
+  if (userDataError || !userData) {
+    throw new Error(
+      "Error fetching user data: " +
+        (userDataError?.message || "User not found")
+    )
+  }
+
+  const messageCount = userData.message_count || 0
+  const dailyCount = userData.daily_message_count || 0
+
+  const newOverallCount = messageCount + units
+  const newDailyCount = dailyCount + units
+
+  const { error: updateError } = await supabase
+    .from("users")
+    .update({
+      message_count: newOverallCount,
+      daily_message_count: newDailyCount,
+      last_active_at: new Date().toISOString(),
+    })
+    .eq("id", userId)
+
+  if (updateError) {
+    throw new Error("Failed to update usage data: " + updateError.message)
+  }
+}
+
+async function getModelRequestUnits(modelId: string): Promise<number> {
+  const { getCustomModels } = await import("@/lib/models/custom")
+  const customModels = await getCustomModels()
+  const allModels = await getAllModels(customModels)
+  const modelConfig = allModels.find((item) => item.uniqueId === modelId)
+
+  if (!modelConfig) {
+    return 1
+  }
+
+  return getRequestMultiplierFromPricing({
+    inputCostPerMillion: modelConfig.inputCost,
+    outputCostPerMillion: modelConfig.outputCost,
+  })
 }
 
 export async function checkProUsage(supabase: SupabaseClient, userId: string) {
@@ -205,16 +265,29 @@ export async function checkUsageByModel(
   supabase: SupabaseClient,
   userId: string,
   modelId: string,
-  isAuthenticated: boolean
+  _isAuthenticated: boolean
 ) {
-  return await checkUsage(supabase, userId)
+  const baseUsage = await checkUsage(supabase, userId)
+  const requiredUnits = await getModelRequestUnits(modelId)
+
+  if (baseUsage.dailyCount + requiredUnits > baseUsage.dailyLimit) {
+    throw new UsageLimitError(
+      `Daily request limit reached for this model. Required units: x${requiredUnits}.`
+    )
+  }
+
+  return {
+    ...baseUsage,
+    requiredUnits,
+  }
 }
 
 export async function incrementUsageByModel(
   supabase: SupabaseClient,
   userId: string,
   modelId: string,
-  isAuthenticated: boolean
+  _isAuthenticated: boolean
 ) {
-  return await incrementUsage(supabase, userId)
+  const units = await getModelRequestUnits(modelId)
+  return await incrementUsageUnits(supabase, userId, units)
 }

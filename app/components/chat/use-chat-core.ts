@@ -12,7 +12,7 @@ import { DefaultChatTransport } from "ai"
 import { useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
-const OLLAMA_STORAGE_KEY = "zenchi-ollama-settings"
+const OLLAMA_STORAGE_KEY = "ziro-ollama-settings"
 
 // Get Ollama endpoint from localStorage
 function getOllamaEndpoint(): string | undefined {

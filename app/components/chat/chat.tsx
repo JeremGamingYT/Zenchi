@@ -34,11 +34,6 @@ const BudgetErrorDialog = dynamic(
   { ssr: false }
 )
 
-const FeatureUnavailableDialog = dynamic(
-  () => import("./feature-unavailable-dialog").then((mod) => mod.FeatureUnavailableDialog),
-  { ssr: false }
-)
-
 export function Chat() {
   const { chatId } = useChatSession()
   const {
@@ -80,7 +75,6 @@ export function Chat() {
 
   // State to pass between hooks
   const [hasDialogAuth, setHasDialogAuth] = useState(false)
-  const [showFeatureUnavailable, setShowFeatureUnavailable] = useState(false)
   const isAuthenticated = useMemo(() => !!user?.id, [user?.id])
   const systemPrompt = useMemo(
     () => user?.system_prompt || SYSTEM_PROMPT_DEFAULT,
@@ -131,7 +125,7 @@ export function Chat() {
       }
 
       return true
-    } catch (err) {
+    } catch {
       // Silent failure - default to not allowing messages
       return false
     }
@@ -316,7 +310,7 @@ export function Chat() {
     messages.length === 0 &&
     !hasSentFirstMessageRef.current // Don't redirect if we've already sent a message in this session
   ) {
-    return redirect("/")
+    return redirect("/chat")
   }
 
   const showOnboarding = !chatId && messages.length === 0
@@ -328,10 +322,6 @@ export function Chat() {
       )}
     >
       <DialogAuth open={hasDialogAuth} setOpen={setHasDialogAuth} />
-      <FeatureUnavailableDialog
-        open={showFeatureUnavailable}
-        onOpenChange={setShowFeatureUnavailable}
-      />
 
       {budgetError && (
         <BudgetErrorDialog
@@ -381,20 +371,6 @@ export function Chat() {
           },
         }}
       >
-        {/* Overlay to intercept clicks and show feature unavailable popup */}
-        <div
-          className="absolute inset-0 z-[100] cursor-pointer"
-          onClick={() => setShowFeatureUnavailable(true)}
-          onKeyDown={(e) => {
-            if (e.key !== "Tab") {
-              e.preventDefault()
-              setShowFeatureUnavailable(true)
-            }
-          }}
-          role="button"
-          tabIndex={0}
-          aria-label="Feature not available"
-        />
         <ChatInput {...chatInputProps} />
       </motion.div>
 

@@ -62,7 +62,7 @@ export interface AgentsState {
     }
 }
 
-const AGENTS_STORAGE_KEY = "zenchi-agents-state"
+const AGENTS_STORAGE_KEY = "ziro-agents-state"
 
 // Agent configurations
 export const AGENT_CONFIGS: Record<AgentType, Omit<AgentConfig, "enabled">> = {

@@ -10,7 +10,11 @@ import {
     SidebarMenuButton,
     SidebarGroup,
     SidebarGroupLabel,
-    SidebarGroupContent
+    SidebarGroupContent,
+    SidebarMenuSub,
+    SidebarMenuSubItem,
+    SidebarMenuSubButton,
+    useSidebar
 } from "@/components/ui/sidebar"
 import {
     CaretLeft,
@@ -23,22 +27,49 @@ import {
     Users,
     CaretRight,
     BookOpen,
-    Hash
+    Hash,
+    FolderOpen
 } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
+import { useState } from "react"
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible"
 
-const MOCK_PAGES = [
-    { id: "demo", title: "Product Requirements", icon: Files },
-    { id: "marketing", title: "Marketing Strategy", icon: BookOpen },
-    { id: "team", title: "Team Goals 2026", icon: Users },
-    { id: "ideas", title: "Content Ideas", icon: Star },
+const MOCK_PROJECTS = [
+    {
+        id: "marketing-q1",
+        title: "Marketing Q1",
+        icon: FolderOpen,
+        pages: [
+            { id: "strategy", title: "Strategy Doc" },
+            { id: "assets", title: "Brand Assets" },
+            { id: "campaign", title: "Social Campaign" }
+        ]
+    },
+    {
+        id: "product-dev",
+        title: "Product Dev",
+        icon: FolderOpen,
+        pages: [
+            { id: "reqs", title: "Requirements" },
+            { id: "roadmap", title: "Roadmap 2026" }
+        ]
+    },
 ]
 
 export function NotionSidebar() {
     const router = useRouter()
     const pathname = usePathname()
+
+    // Track open states for projects
+    const [openProjects, setOpenProjects] = useState<Record<string, boolean>>({
+        "marketing-q1": true,
+        "product-dev": false
+    })
+
+    const toggleProject = (id: string) => {
+        setOpenProjects(prev => ({ ...prev, [id]: !prev[id] }))
+    }
 
     return (
         <Sidebar collapsible="none" className="h-full border-r border-border/40 bg-sidebar/50 backdrop-blur-xl w-64 hidden md:flex">
@@ -51,7 +82,7 @@ export function NotionSidebar() {
                     <div className="size-6 rounded-md bg-blue-600/20 text-blue-500 flex items-center justify-center border border-blue-500/20">
                         <BookOpen size={14} weight="fill" />
                     </div>
-                    <span className="font-semibold text-sm tracking-tight">Zenchi Notes</span>
+                    <span className="font-semibold text-sm tracking-tight">Ziro Notes</span>
                 </div>
                 <Button variant="ghost" size="icon" className="size-7" onClick={() => router.push("/")}>
                     <CaretLeft size={14} />
@@ -63,11 +94,9 @@ export function NotionSidebar() {
 
                 {/* Quick Actions */}
                 <SidebarMenu className="mb-4">
+                    {/* ... existing Search & New Page items ... */}
                     <SidebarMenuItem>
-                        <SidebarMenuButton
-                            onClick={() => { }} // Search trigger 
-                            className="text-muted-foreground hover:text-foreground"
-                        >
+                        <SidebarMenuButton className="text-muted-foreground hover:text-foreground">
                             <MagnifyingGlass size={16} />
                             <span>Search</span>
                             <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
@@ -104,35 +133,57 @@ export function NotionSidebar() {
                     </SidebarGroupContent>
                 </SidebarGroup>
 
-                {/* Workspaces */}
+                {/* Projects (Collapsible) */}
                 <SidebarGroup className="mt-2">
-                    <SidebarGroupLabel>Private</SidebarGroupLabel>
+                    <SidebarGroupLabel>Projects</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
-                            {MOCK_PAGES.map((page) => (
-                                <SidebarMenuItem key={page.id}>
-                                    <SidebarMenuButton
-                                        onClick={() => router.push(`/notion/${page.id === 'demo' ? 'demo' : '#'}`)}
-                                        isActive={pathname.includes(page.id)}
-                                        className="group/item"
-                                    >
-                                        <CaretRight size={12} className="text-muted-foreground/50 transition-transform group-hover/item:text-foreground group-data-[state=open]/collapsible:rotate-90" />
-                                        <page.icon size={16} className="text-muted-foreground" />
-                                        <span>{page.title}</span>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
+                            {MOCK_PROJECTS.map((project) => (
+                                <Collapsible
+                                    key={project.id}
+                                    open={openProjects[project.id]}
+                                    onOpenChange={() => toggleProject(project.id)}
+                                    className="group/collapsible"
+                                >
+                                    <SidebarMenuItem>
+                                        <CollapsibleTrigger asChild>
+                                            <SidebarMenuButton className="group/item w-full justify-start">
+                                                <CaretRight
+                                                    size={12}
+                                                    className="text-muted-foreground/50 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                                                />
+                                                <project.icon size={16} className="text-muted-foreground" />
+                                                <span>{project.title}</span>
+                                            </SidebarMenuButton>
+                                        </CollapsibleTrigger>
+
+                                        <CollapsibleContent>
+                                            <SidebarMenuSub>
+                                                {project.pages.map(page => (
+                                                    <SidebarMenuSubItem key={page.id}>
+                                                        <SidebarMenuSubButton
+                                                            onClick={() => router.push(`/notion/demo`)} // Redirects to demo for now
+                                                            isActive={false}
+                                                        >
+                                                            {page.title}
+                                                        </SidebarMenuSubButton>
+                                                    </SidebarMenuSubItem>
+                                                ))}
+                                            </SidebarMenuSub>
+                                        </CollapsibleContent>
+                                    </SidebarMenuItem>
+                                </Collapsible>
                             ))}
 
                             <SidebarMenuItem>
                                 <SidebarMenuButton className="text-muted-foreground opacity-50 hover:opacity-100">
                                     <Plus size={14} />
-                                    <span>Add a page</span>
+                                    <span>Add a project</span>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>
-
 
             </SidebarContent>
 

@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const OLLAMA_STORAGE_KEY = "zenchi-ollama-settings"
-
 // Server-side proxy for Ollama API to bypass CORS and add NGrok headers
 export async function POST(request: NextRequest) {
     try {

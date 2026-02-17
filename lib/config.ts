@@ -7,16 +7,20 @@ import {
   PaintBrush,
   Sparkle,
 } from "@phosphor-icons/react/dist/ssr"
+import {
+  FREE_PLAN_DAILY_REQUEST_UNITS,
+  PRO_PLAN_DAILY_REQUEST_UNITS,
+} from "@/lib/request-units"
 
 export const NON_AUTH_DAILY_MESSAGE_LIMIT = 5
-export const AUTH_DAILY_MESSAGE_LIMIT = 1000
+export const AUTH_DAILY_MESSAGE_LIMIT = FREE_PLAN_DAILY_REQUEST_UNITS
 export const REMAINING_QUERY_ALERT_THRESHOLD = 2
 export const DAILY_FILE_UPLOAD_LIMIT = 5
-export const DAILY_LIMIT_PRO_MODELS = 500
+export const DAILY_LIMIT_PRO_MODELS = PRO_PLAN_DAILY_REQUEST_UNITS
 
 export const MODEL_DEFAULT = "google:gemini-2.5-pro"
 
-export const APP_NAME = "Zenchi"
+export const APP_NAME = "Ziro"
 export const APP_DOMAIN = "https://zola.silkepilon.dev"
 
 export const SUGGESTIONS = [

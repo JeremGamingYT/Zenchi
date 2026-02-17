@@ -2,9 +2,9 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Zenchi - Open-source AI Chat Interface',
-    short_name: 'Zenchi',
-    description: 'Zenchi is the open-source interface for AI chat. Multi-model, BYOK-ready, and fully self-hostable. Use Claude, OpenAI, Gemini, local models, and more, all in one place.',
+    name: 'Ziro - Open-source AI Chat Interface',
+    short_name: 'Ziro',
+    description: 'Ziro is the open-source interface for AI chat. Multi-model, BYOK-ready, and fully self-hostable. Use Claude, OpenAI, Gemini, local models, and more, all in one place.',
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',

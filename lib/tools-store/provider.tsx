@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react"
 
-const TOOLS_STORAGE_KEY = "zenchi-tools-state"
+const TOOLS_STORAGE_KEY = "ziro-tools-state"
 
 export type ThinkingLevel = "off" | "low" | "medium" | "high"
 

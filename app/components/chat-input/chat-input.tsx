@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { getModelInfo } from "@/lib/models"
 // Icons replaced by animated primitives
 import { SendButtonIconAnimated } from "./button-send-animated"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef } from "react"
 import { PromptSystem } from "../suggestions/prompt-system"
 import { ButtonFilesMenu } from "./button-files-menu"
 import { ButtonSettings } from "./button-settings"
@@ -183,7 +183,7 @@ export function ChatInput({
         onClick={() => textareaRef.current?.focus()}
       >
         <PromptInput
-          className="bg-popover relative z-10 p-0 pt-1 shadow-xs backdrop-blur-xl"
+          className="bg-card/85 border-border/60 relative z-10 p-0 pt-1 shadow-sm backdrop-blur-xl"
           maxHeight={200}
           value={value}
           onValueChange={onValueChange}
@@ -191,10 +191,10 @@ export function ChatInput({
           <FileList files={files} onFileRemove={onFileRemove} />
           <PromptInputTextarea
             ref={textareaRef}
-            placeholder="Ask Zenchi"
+            placeholder="Ask Ziro"
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
-            className="min-h-[44px] pt-3 pl-4 text-base leading-[1.3] sm:text-base md:text-base"
+            className="text-foreground placeholder:text-muted-foreground min-h-[44px] pt-3 pl-4 text-base leading-[1.3] sm:text-base md:text-base"
           />
           <PromptInputActions className="mt-3 w-full justify-between p-2">
             <div className="flex gap-2">

@@ -49,7 +49,7 @@ export function ModelProvider({ children }: { children: React.ReactNode }) {
   const [favoriteModels, setFavoriteModels] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  const OLLAMA_STORAGE_KEY = "zenchi-ollama-settings"
+  const OLLAMA_STORAGE_KEY = "ziro-ollama-settings"
 
   // Get Ollama endpoint from localStorage
   const getOllamaEndpoint = useCallback((): string | null => {
